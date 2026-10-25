@@ -9,20 +9,20 @@
 #include <mach-o/dyld.h>
 #include <stdlib.h>
 #include <unistd.h>
-#ifdef CTX_SECURITY_PROBE
+#ifdef WOLFCOW_SECURITY_PROBE
 #include <fcntl.h>
 #endif
 
 static int check(int result, const char *stage) {
     if (result < 0) {
-        fprintf(stderr, "ctx: %s: %s (%d)\n", stage, strerror(-result), result);
+        fprintf(stderr, "wolfcow: %s: %s (%d)\n", stage, strerror(-result), result);
         return 0;
     }
     return 1;
 }
 
 int main(int argc, char **argv) {
-#ifdef CTX_SECURITY_PROBE
+#ifdef WOLFCOW_SECURITY_PROBE
     if (argc == 3 && strcmp(argv[1], "--probe-read") == 0) {
         int fd = open(argv[2], O_RDONLY);
         if (fd < 0) {
@@ -35,14 +35,14 @@ int main(int argc, char **argv) {
     }
 #endif
     if (argc != 2) {
-        fprintf(stderr, "usage: ctx-krun ROOTFS\n");
+        fprintf(stderr, "usage: wolfcow-krun ROOTFS\n");
         return 1;
     }
     char executable[PATH_MAX], resolved[PATH_MAX];
     uint32_t length = sizeof(executable);
     if (_NSGetExecutablePath(executable, &length) != 0 ||
         realpath(executable, resolved) == NULL) {
-        fprintf(stderr, "ctx: cannot locate runtime directory\n");
+        fprintf(stderr, "wolfcow: cannot locate runtime directory\n");
         return 1;
     }
     char *separator = strrchr(resolved, '/');
@@ -52,14 +52,14 @@ int main(int argc, char **argv) {
     if (snprintf(firmware, sizeof(firmware), "%s/libkrunfw.5.dylib", resolved) >= (int)sizeof(firmware)) return 1;
     // Load the bundled firmware explicitly before libkrun resolves its basename.
     if (dlopen(firmware, RTLD_NOW | RTLD_GLOBAL) == NULL) {
-        fprintf(stderr, "ctx: load firmware: %s\n", dlerror());
+        fprintf(stderr, "wolfcow: load firmware: %s\n", dlerror());
         return 1;
     }
     struct rlimit limit;
     if (getrlimit(RLIMIT_NOFILE, &limit) == 0) {
         limit.rlim_cur = limit.rlim_max;
         if (setrlimit(RLIMIT_NOFILE, &limit) != 0) {
-            perror("ctx: setrlimit");
+            perror("wolfcow: setrlimit");
             return 1;
         }
     }

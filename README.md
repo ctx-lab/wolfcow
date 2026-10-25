@@ -1,11 +1,11 @@
-# ctx
+# Wolfcow
 
 A local microVM runtime for coding agents. The current preview boots a disposable
 Linux shell on Apple Silicon macOS using libkrun.
 
 ```sh
 task build
-./bin/ctx shell
+./bin/wolfcow shell
 ```
 
 Type `exit` to leave the VM. This is an early preview for local experiments;

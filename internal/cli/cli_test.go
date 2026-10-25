@@ -7,7 +7,7 @@ import (
 )
 
 func TestCommands(t *testing.T) {
-	t.Setenv("CTX_ROOTFS", "")
+	t.Setenv("WOLFCOW_ROOTFS", "")
 	for _, tc := range []struct {
 		args  []string
 		want  string
@@ -37,7 +37,7 @@ func TestCommands(t *testing.T) {
 }
 
 func TestDefaultShell(t *testing.T) {
-	t.Setenv("CTX_ROOTFS", "")
+	t.Setenv("WOLFCOW_ROOTFS", "")
 	called := false
 	cmd := newCommand(func(path string) error {
 		called = true
@@ -69,7 +69,7 @@ func TestRootfsSettings(t *testing.T) {
 		{"unknown flag", []string{"shell", "--typo"}, "", true},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Setenv("CTX_ROOTFS", "/env-root")
+			t.Setenv("WOLFCOW_ROOTFS", "/env-root")
 			var got string
 			cmd := newCommand(func(path string) error { got = path; return nil })
 			cmd.SetArgs(tc.args)

@@ -9,7 +9,7 @@ for file in bin/runtime/libkrun.1.dylib bin/runtime/libkrunfw.5.dylib; do
   [ -f "$file" ] || { echo 'Run task build first' >&2; exit 1; }
 done
 
-work=$(mktemp -d "${TMPDIR:-/tmp}/ctx-app-sandbox.XXXXXX")
+work=$(mktemp -d "${TMPDIR:-/tmp}/wolfcow-app-sandbox.XXXXXX")
 trap 'rm -rf "$work"' EXIT HUP INT TERM
 cp bin/runtime/libkrun.1.dylib bin/runtime/libkrunfw.5.dylib "$work/"
 make_info_plist() {
@@ -19,7 +19,7 @@ make_info_plist() {
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
-  <key>CFBundleIdentifier</key><string>dev.ctx.spike.$name</string>
+  <key>CFBundleIdentifier</key><string>dev.wolfcow.spike.$name</string>
   <key>CFBundleExecutable</key><string>$executable</string>
   <key>CFBundlePackageType</key><string>APPL</string>
 </dict></plist>
@@ -28,8 +28,8 @@ EOF
 make_info_plist minimal minimal
 printf 'int main(void) { return 0; }\n' > "$work/minimal.c"
 clang "$work/minimal.c" -Wl,-sectcreate,__TEXT,__info_plist,"$work/minimal.plist" -o "$work/minimal"
-codesign --force --sign "${CTX_SIGN_IDENTITY:--}" \
-  --identifier dev.ctx.spike.minimal --options runtime \
+codesign --force --sign "${WOLFCOW_SIGN_IDENTITY:--}" \
+  --identifier dev.wolfcow.spike.minimal --options runtime \
   --entitlements hack/app-sandbox-only.entitlements.plist "$work/minimal"
 set +e
 "$work/minimal" 2>"$work/minimal.log"
@@ -40,23 +40,23 @@ if [ "$minimal_status" -ne 0 ]; then
   cat "$work/minimal.log" >&2
   exit 1
 fi
-make_info_plist krun ctx-krun
-clang -Wall -Wextra -Werror -O2 -DCTX_SECURITY_PROBE \
+make_info_plist krun wolfcow-krun
+clang -Wall -Wextra -Werror -O2 -DWOLFCOW_SECURITY_PROBE \
   -I.cache/build/libkrun/include native/shell.c \
   "$work/libkrun.1.dylib" -Wl,-rpath,@loader_path \
-  -Wl,-sectcreate,__TEXT,__info_plist,"$work/krun.plist" -o "$work/ctx-krun"
-codesign --force --sign "${CTX_SIGN_IDENTITY:--}" \
-  --identifier dev.ctx.spike.krun --options runtime \
-  --entitlements hack/app-sandbox-spike.entitlements.plist "$work/ctx-krun"
+  -Wl,-sectcreate,__TEXT,__info_plist,"$work/krun.plist" -o "$work/wolfcow-krun"
+codesign --force --sign "${WOLFCOW_SIGN_IDENTITY:--}" \
+  --identifier dev.wolfcow.spike.krun --options runtime \
+  --entitlements hack/app-sandbox-spike.entitlements.plist "$work/wolfcow-krun"
 
 marker="$PWD/.cache/app-sandbox-probe-marker"
 printf 'synthetic\n' > "$marker"
 trap 'rm -rf "$work"; rm -f "$marker"' EXIT HUP INT TERM
 
 set +e
-"$work/ctx-krun" --probe-read /etc/hosts >/dev/null 2>"$work/system.log"
+"$work/wolfcow-krun" --probe-read /etc/hosts >/dev/null 2>"$work/system.log"
 system_status=$?
-"$work/ctx-krun" --probe-read "$marker" >/dev/null 2>"$work/private.log"
+"$work/wolfcow-krun" --probe-read "$marker" >/dev/null 2>"$work/private.log"
 private_status=$?
 set -e
 if [ "$system_status" -ne 0 ]; then

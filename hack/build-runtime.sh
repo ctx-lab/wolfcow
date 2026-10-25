@@ -6,7 +6,7 @@ ROOT=$(pwd)
 . ./hack/runtime.env
 
 if [ "$(uname -s)/$(uname -m)" != Darwin/arm64 ]; then
-  echo 'ctx v0.0.1 runtime builds require Apple Silicon macOS' >&2
+  echo 'wolfcow v0.0.1 runtime builds require Apple Silicon macOS' >&2
   exit 1
 fi
 for tool in cargo rustc clang codesign install_name_tool curl shasum tar make; do
@@ -62,10 +62,10 @@ cp .cache/downloads/rootfs.tar.gz bin/runtime/
 install_name_tool -id @rpath/libkrun.1.dylib bin/runtime/libkrun.1.dylib
 install_name_tool -id @rpath/libkrunfw.5.dylib bin/runtime/libkrunfw.5.dylib
 clang -Wall -Wextra -Werror -O2 -I.cache/build/libkrun/include \
-  native/shell.c bin/runtime/libkrun.1.dylib -Wl,-rpath,@loader_path -o bin/runtime/ctx-krun
+  native/shell.c bin/runtime/libkrun.1.dylib -Wl,-rpath,@loader_path -o bin/runtime/wolfcow-krun
 codesign --force --sign - bin/runtime/libkrun.1.dylib
 codesign --force --sign - bin/runtime/libkrunfw.5.dylib
-codesign --force --sign - --entitlements native/entitlements.plist bin/runtime/ctx-krun
+codesign --force --sign - --entitlements native/entitlements.plist bin/runtime/wolfcow-krun
 
 mkdir -p bin/runtime/licenses
 cp .cache/build/libkrun/LICENSE bin/runtime/licenses/libkrun-APACHE-2.0

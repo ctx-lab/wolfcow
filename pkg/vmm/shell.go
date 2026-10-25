@@ -31,14 +31,14 @@ func RunShell(rootfs string) error {
 		return err
 	}
 	bundle := filepath.Join(filepath.Dir(exe), "runtime")
-	helper := filepath.Join(bundle, "ctx-krun")
-	for _, name := range []string{"ctx-krun", "libkrun.1.dylib", "libkrunfw.5.dylib"} {
+	helper := filepath.Join(bundle, "wolfcow-krun")
+	for _, name := range []string{"wolfcow-krun", "libkrun.1.dylib", "libkrunfw.5.dylib"} {
 		info, err := os.Stat(filepath.Join(bundle, name))
 		if err != nil || !info.Mode().IsRegular() {
 			return fmt.Errorf("runtime incomplete (%s); from source, run task build", name)
 		}
 	}
-	staging, err := os.MkdirTemp("", "ctx-shell-")
+	staging, err := os.MkdirTemp("", "wolfcow-shell-")
 	if err != nil {
 		return err
 	}
@@ -107,7 +107,7 @@ func verifyImage(name string) error {
 		return err
 	}
 	if hex.EncodeToString(h.Sum(nil)) != imageSHA256 {
-		return fmt.Errorf("default Linux image checksum mismatch; rebuild or reinstall ctx")
+		return fmt.Errorf("default Linux image checksum mismatch; rebuild or reinstall wolfcow")
 	}
 	return nil
 }

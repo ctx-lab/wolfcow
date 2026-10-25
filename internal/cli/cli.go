@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/ctx-lab/ctx/pkg/vmm"
+	"github.com/ctx-lab/wolfcow/pkg/vmm"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -22,10 +22,10 @@ func Run(args []string, out io.Writer) error {
 
 func newCommand(launch func(string) error) *cobra.Command {
 	config := viper.New()
-	config.SetEnvPrefix("CTX")
+	config.SetEnvPrefix("WOLFCOW")
 	config.AutomaticEnv()
 	root := &cobra.Command{
-		Use:               "ctx",
+		Use:               "wolfcow",
 		Short:             "A minimal libkrun shell launcher",
 		Version:           Version,
 		SilenceUsage:      true,
@@ -57,7 +57,7 @@ func newCommand(launch func(string) error) *cobra.Command {
 			return launch(path)
 		},
 	}
-	shell.Flags().String("rootfs", "", "Disposable rootfs directory (env: CTX_ROOTFS)")
+	shell.Flags().String("rootfs", "", "Disposable rootfs directory (env: WOLFCOW_ROOTFS)")
 	// The flag exists on this command, so binding cannot fail.
 	if err := config.BindPFlag("rootfs", shell.Flags().Lookup("rootfs")); err != nil {
 		panic(err)

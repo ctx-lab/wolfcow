@@ -1,4 +1,4 @@
-module github.com/ctx-lab/ctx
+module github.com/ctx-lab/wolfcow
 
 go 1.21.0
 

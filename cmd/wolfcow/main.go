@@ -6,7 +6,7 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/ctx-lab/ctx/internal/cli"
+	"github.com/ctx-lab/wolfcow/internal/cli"
 )
 
 func main() {
@@ -19,7 +19,7 @@ func main() {
 			}
 			os.Exit(code)
 		}
-		fmt.Fprintln(os.Stderr, "ctx:", err)
+		fmt.Fprintln(os.Stderr, "wolfcow:", err)
 		os.Exit(1)
 	}
 }

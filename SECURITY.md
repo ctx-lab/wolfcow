@@ -1,6 +1,6 @@
 # Security status
 
-ctx v0.0.1 is a VM boot preview, not a hardened sandbox for hostile code.
+Wolfcow v0.0.1 is a VM boot preview, not a hardened sandbox for hostile code.
 The macOS VMM runs with the invoking user's host permissions. The guest has a
 private disposable rootfs and no configured network device, but host-side VMM
 confinement has not been established or tested.
