@@ -4,14 +4,13 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"os/exec"
 
 	"github.com/ctx-lab/wolfcow/internal/cli"
 )
 
 func main() {
-	if err := cli.Run(os.Args[1:], os.Stdout); err != nil {
-		var exit *exec.ExitError
+	if err := cli.RunWithWriters(os.Args[1:], os.Stdout, os.Stderr); err != nil {
+		var exit interface{ ExitCode() int }
 		if errors.As(err, &exit) {
 			code := exit.ExitCode()
 			if code < 0 {

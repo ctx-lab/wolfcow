@@ -9,7 +9,7 @@ if [ "$(uname -s)/$(uname -m)" != Darwin/arm64 ]; then
   echo 'wolfcow v0.0.1 runtime builds require Apple Silicon macOS' >&2
   exit 1
 fi
-for tool in cargo rustc clang codesign install_name_tool curl shasum tar make; do
+for tool in go cargo rustc clang codesign install_name_tool curl shasum tar make; do
   command -v "$tool" >/dev/null || { echo "Missing build tool: $tool" >&2; exit 1; }
 done
 
@@ -55,6 +55,8 @@ export ZIG_GLOBAL_CACHE_DIR="$ROOT/.cache/zig"
 export KRUN_INIT_BINARY_PATH="$ROOT/.cache/build/init"
 cargo build --manifest-path .cache/build/libkrun/Cargo.toml --release --locked -p libkrun
 make -C .cache/build/libkrunfw/libkrunfw
+CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -trimpath -ldflags '-s -w' \
+  -o bin/runtime/wolfcow-guest ./cmd/wolfcow-guest
 
 cp .cache/build/libkrun/target/release/libkrun.dylib bin/runtime/libkrun.1.dylib
 cp .cache/build/libkrunfw/libkrunfw/libkrunfw.5.dylib bin/runtime/

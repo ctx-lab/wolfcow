@@ -5,7 +5,8 @@ import (
 	"io"
 	"os"
 
-	"github.com/ctx-lab/wolfcow/pkg/vmm"
+	"github.com/ctx-lab/wolfcow/internal/spike"
+	"github.com/ctx-lab/wolfcow/internal/vmm"
 
 	"github.com/spf13/cobra"
 )
@@ -13,10 +14,14 @@ import (
 const Version = "0.0.1"
 
 func Run(args []string, out io.Writer) error {
+	return RunWithWriters(args, out, out)
+}
+
+func RunWithWriters(args []string, out, errOut io.Writer) error {
 	cmd := newCommand(vmm.RunShell)
 	cmd.SetArgs(args)
 	cmd.SetOut(out)
-	cmd.SetErr(out)
+	cmd.SetErr(errOut)
 	return cmd.Execute()
 }
 
@@ -58,5 +63,14 @@ func newCommand(launch func(string) error) *cobra.Command {
 	}
 	shell.Flags().String("rootfs", "", "Rootfs source directory (copied; env: WOLFCOW_ROOTFS)")
 	root.AddCommand(shell)
+	spikeCmd := &cobra.Command{Use: "spike", Short: "Development VM probes", Hidden: true}
+	spikeCmd.AddCommand(&cobra.Command{
+		Use: "exec -- COMMAND [ARG...]", Short: "Run one bounded command in a disposable guest",
+		Args: cobra.MinimumNArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return spike.RunExec(cmd.Context(), args, cmd.OutOrStdout(), cmd.ErrOrStderr())
+		},
+	})
+	root.AddCommand(spikeCmd)
 	return root
 }

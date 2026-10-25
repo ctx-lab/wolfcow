@@ -37,10 +37,17 @@ tasks:
       - go test ./...
 
   verify:
-    desc: Run tests and Go vet
+    desc: Run tests, Go vet, and static guest cross-build
     cmds:
       - task: test
       - go vet ./...
+      - CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o /tmp/wolfcow-guest ./cmd/wolfcow-guest
+
+  stage:a:
+    desc: Boot the libkrun guest and run one bounded command over vsock
+    cmds:
+      - task: build
+      - ./bin/wolfcow spike exec -- /bin/uname -r
 
   security:app-sandbox:
     desc: Probe App Sandbox signing and private-file denial (experimental)

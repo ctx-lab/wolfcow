@@ -8,9 +8,10 @@ entitlement. End users of a prepared archive do not need these build tools.
 
 ```sh
 task build           # CLI, libkrun, firmware, and default Linux image
-task verify          # Go tests and vet
+task verify          # Go tests, vet, and static Linux guest build
 task package         # self-contained macOS archive in dist/
 ./bin/wolfcow shell     # boot a disposable shell
+task stage:a         # experimental guest ready + exec over vsock
 ```
 
 The default rootfs is recreated for every run and removed on exit. An optional
@@ -19,11 +20,14 @@ ARM64 Linux rootfs before boot. Guest changes are discarded. Never use a host
 project or home directory as a source. The CLI uses Cobra for command parsing;
 the optional rootfs source can also be set with `WOLFCOW_ROOTFS`.
 
-The Go module is `github.com/ctx-lab/wolfcow`. `pkg/vmm` contains the current
-libkrun shell path and image staging. `internal/cli` owns the command surface.
+The Go module is `github.com/ctx-lab/wolfcow`. `internal/vmm` owns VM lifecycle
+and image staging; `internal/protocol` defines the bounded guest stream.
+`cmd/wolfcow-guest` builds a static Linux guest agent. `internal/cli` owns the
+command surface. `task stage:a` uses a hidden development command and requires
+a macOS terminal that permits local Unix sockets and the Hypervisor framework.
 Native C interop lives in `native/`; reproducible build and probe scripts live
-in `hack/`. The planned backend interface, guest protocol, egress, and session
-packages will be added as those capabilities are implemented.
+in `hack/`. The backend interface and guest protocol are experimental; egress
+and session packages will be added as those capabilities are implemented.
 
 ## App Sandbox probe
 
@@ -31,9 +35,10 @@ packages will be added as those capabilities are implemented.
 macOS App Sandbox lets the helper read a system fixture while denying a private
 file. It never changes the shipped helper. The first host run failed before
 `main`: its crash report said the signed executable lacked an embedded
-`Info.plist` bundle identifier. The probe now embeds matching identifiers, and
-a new host run is pending. This development session cannot apply an additional
-macOS sandbox. `WOLFCOW_SIGN_IDENTITY` can select an installed signing identity;
+`Info.plist` bundle identifier. The probe now embeds matching identifiers. In
+the current development environment, the minimal signed process still aborts
+before libkrun runs, so App Sandbox confinement remains unverified.
+`WOLFCOW_SIGN_IDENTITY` can select an installed signing identity;
 otherwise the probe signs ad hoc. The probe's temporary library-validation
 exception is absent from the product helper.
 
