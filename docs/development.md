@@ -16,8 +16,8 @@ task package         # self-contained macOS archive in dist/
 The default rootfs is recreated for every run and removed on exit. An optional
 `wolfcow shell ROOTFS` (or `--rootfs ROOTFS`, or `WOLFCOW_ROOTFS=ROOTFS`) copies a trusted
 ARM64 Linux rootfs before boot. Guest changes are discarded. Never use a host
-project or home directory as a source. The CLI uses Cobra for command parsing
-and Viper for the optional rootfs setting.
+project or home directory as a source. The CLI uses Cobra for command parsing;
+the optional rootfs source can also be set with `WOLFCOW_ROOTFS`.
 
 The Go module is `github.com/ctx-lab/wolfcow`. `pkg/vmm` contains the current
 libkrun shell path and image staging. `internal/cli` owns the command surface.

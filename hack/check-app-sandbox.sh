@@ -19,7 +19,7 @@ make_info_plist() {
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
-  <key>CFBundleIdentifier</key><string>dev.wolfcow.spike.$name</string>
+  <key>CFBundleIdentifier</key><string>com.ctx-lab.wolfcow.spike.$name</string>
   <key>CFBundleExecutable</key><string>$executable</string>
   <key>CFBundlePackageType</key><string>APPL</string>
 </dict></plist>
@@ -29,7 +29,7 @@ make_info_plist minimal minimal
 printf 'int main(void) { return 0; }\n' > "$work/minimal.c"
 clang "$work/minimal.c" -Wl,-sectcreate,__TEXT,__info_plist,"$work/minimal.plist" -o "$work/minimal"
 codesign --force --sign "${WOLFCOW_SIGN_IDENTITY:--}" \
-  --identifier dev.wolfcow.spike.minimal --options runtime \
+  --identifier com.ctx-lab.wolfcow.spike.minimal --options runtime \
   --entitlements hack/app-sandbox-only.entitlements.plist "$work/minimal"
 set +e
 "$work/minimal" 2>"$work/minimal.log"
@@ -46,7 +46,7 @@ clang -Wall -Wextra -Werror -O2 -DWOLFCOW_SECURITY_PROBE \
   "$work/libkrun.1.dylib" -Wl,-rpath,@loader_path \
   -Wl,-sectcreate,__TEXT,__info_plist,"$work/krun.plist" -o "$work/wolfcow-krun"
 codesign --force --sign "${WOLFCOW_SIGN_IDENTITY:--}" \
-  --identifier dev.wolfcow.spike.krun --options runtime \
+  --identifier com.ctx-lab.wolfcow.spike.krun --options runtime \
   --entitlements hack/app-sandbox-spike.entitlements.plist "$work/wolfcow-krun"
 
 marker="$PWD/.cache/app-sandbox-probe-marker"

@@ -3,11 +3,11 @@ package cli
 import (
 	"fmt"
 	"io"
+	"os"
 
 	"github.com/ctx-lab/wolfcow/pkg/vmm"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 const Version = "0.0.1"
@@ -21,9 +21,6 @@ func Run(args []string, out io.Writer) error {
 }
 
 func newCommand(launch func(string) error) *cobra.Command {
-	config := viper.New()
-	config.SetEnvPrefix("WOLFCOW")
-	config.AutomaticEnv()
 	root := &cobra.Command{
 		Use:               "wolfcow",
 		Short:             "A minimal libkrun shell launcher",
@@ -44,24 +41,22 @@ func newCommand(launch func(string) error) *cobra.Command {
 	shell := &cobra.Command{
 		Use:   "shell [ROOTFS]",
 		Short: "Boot a disposable Linux shell",
-		Long:  "Boot a fresh Alpine Linux shell using the bundled macOS runtime.\nChanges are discarded on exit. An explicit ROOTFS is writable and retained.\nNever supply a host project or home directory as ROOTFS.",
+		Long:  "Boot a fresh Alpine Linux shell using the bundled macOS runtime.\nAn explicit ROOTFS is copied before boot; guest changes are discarded on exit.\nNever supply a host project or home directory as ROOTFS.",
 		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			path := config.GetString("rootfs")
+			path := os.Getenv("WOLFCOW_ROOTFS")
 			if len(args) == 1 {
 				if cmd.Flags().Changed("rootfs") {
 					return fmt.Errorf("supply ROOTFS or --rootfs, not both")
 				}
 				path = args[0]
+			} else if cmd.Flags().Changed("rootfs") {
+				path = cmd.Flags().Lookup("rootfs").Value.String()
 			}
 			return launch(path)
 		},
 	}
-	shell.Flags().String("rootfs", "", "Disposable rootfs directory (env: WOLFCOW_ROOTFS)")
-	// The flag exists on this command, so binding cannot fail.
-	if err := config.BindPFlag("rootfs", shell.Flags().Lookup("rootfs")); err != nil {
-		panic(err)
-	}
+	shell.Flags().String("rootfs", "", "Rootfs source directory (copied; env: WOLFCOW_ROOTFS)")
 	root.AddCommand(shell)
 	return root
 }
