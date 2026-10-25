@@ -1,0 +1,48 @@
+version: '3'
+
+tasks:
+  default:
+    cmds:
+      - task --list
+
+  build:
+    desc: Build ctx and its complete Apple Silicon macOS runtime
+    cmds:
+      - task: runtime
+      - task: cli
+
+  cli:
+    desc: Build only the Go CLI
+    cmds:
+      - mkdir -p bin
+      - go build -o bin/ctx ./cmd/ctx
+
+  runtime:
+    aliases: [native]
+    desc: Build the bundled libkrun runtime and default Linux image
+    cmds:
+      - sh hack/build-runtime.sh
+
+  package:
+    desc: Package the CLI and runtime as one macOS archive
+    cmds:
+      - task: build
+      - mkdir -p dist
+      - tar -czf dist/ctx-0.0.1-darwin-arm64.tar.gz -C bin ctx runtime
+      - cd dist && shasum -a 256 ctx-0.0.1-darwin-arm64.tar.gz > ctx-0.0.1-darwin-arm64.tar.gz.sha256
+
+  test:
+    desc: Run Go tests
+    cmds:
+      - go test ./...
+
+  verify:
+    desc: Run tests and Go vet
+    cmds:
+      - task: test
+      - go vet ./...
+
+  security:app-sandbox:
+    desc: Probe App Sandbox signing and private-file denial (experimental)
+    cmds:
+      - sh hack/check-app-sandbox.sh

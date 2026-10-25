@@ -1,0 +1,21 @@
+# Local builds and downloaded runtime inputs
+/bin/
+/dist/
+/.cache/
+/rootfs/
+/.task/
+
+# Local configuration and credentials
+.env
+.env.*
+
+# Editor, macOS, and test output
+.DS_Store
+.idea/
+.vscode/
+*.dSYM/
+*.profraw
+*.profdata
+coverage.out
+*.test
+*.log

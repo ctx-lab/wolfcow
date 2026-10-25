@@ -1,0 +1,75 @@
+#!/bin/sh
+set -eu
+
+cd "$(dirname "$0")/.."
+ROOT=$(pwd)
+. ./hack/runtime.env
+
+if [ "$(uname -s)/$(uname -m)" != Darwin/arm64 ]; then
+  echo 'ctx v0.0.1 runtime builds require Apple Silicon macOS' >&2
+  exit 1
+fi
+for tool in cargo rustc clang codesign install_name_tool curl shasum tar make; do
+  command -v "$tool" >/dev/null || { echo "Missing build tool: $tool" >&2; exit 1; }
+done
+
+mkdir -p .cache/downloads .cache/build .cache/tools bin/runtime
+fetch() {
+  url=$1 expected=$2 dest=$3
+  if [ ! -f "$dest" ]; then
+    echo "Fetching $(basename "$dest")" >&2
+    partial="$dest.partial.$$"
+    trap 'rm -f "$partial"' EXIT HUP INT TERM
+    curl --fail --location --silent --show-error --retry 2 \
+      --connect-timeout 15 --max-time 180 "$url" -o "$partial"
+    actual=$(shasum -a 256 "$partial" | cut -d ' ' -f 1)
+    [ "$actual" = "$expected" ] || { echo "Checksum mismatch: $url" >&2; exit 1; }
+    mv "$partial" "$dest"
+    trap - EXIT HUP INT TERM
+  fi
+  actual=$(shasum -a 256 "$dest" | cut -d ' ' -f 1)
+  [ "$actual" = "$expected" ] || { echo "Checksum mismatch: remove $dest and retry" >&2; exit 1; }
+}
+
+fetch "$KRUN_URL" "$KRUN_SHA256" .cache/downloads/libkrun.tgz
+fetch "$FIRMWARE_URL" "$FIRMWARE_SHA256" .cache/downloads/libkrunfw.tgz
+fetch "$ZIG_URL" "$ZIG_SHA256" .cache/downloads/zig.tar.xz
+fetch "$IMAGE_URL" "$IMAGE_SHA256" .cache/downloads/rootfs.tar.gz
+
+if [ ! -d .cache/build/libkrun ]; then
+  mkdir -p .cache/build/libkrun
+  tar -xzf .cache/downloads/libkrun.tgz -C .cache/build/libkrun --strip-components=1
+fi
+if [ ! -d .cache/build/libkrunfw/libkrunfw ]; then
+  mkdir -p .cache/build/libkrunfw
+  tar -xzf .cache/downloads/libkrunfw.tgz -C .cache/build/libkrunfw
+fi
+if [ ! -d .cache/tools/zig-aarch64-macos-0.14.1 ]; then
+  tar -xJf .cache/downloads/zig.tar.xz -C .cache/tools
+fi
+
+export ZIG_GLOBAL_CACHE_DIR="$ROOT/.cache/zig"
+.cache/tools/zig-aarch64-macos-0.14.1/zig cc -target aarch64-linux-musl -O2 -static \
+  -o .cache/build/init .cache/build/libkrun/src/init_blob/init/init.c \
+  .cache/build/libkrun/src/init_blob/init/dhcp.c
+export KRUN_INIT_BINARY_PATH="$ROOT/.cache/build/init"
+cargo build --manifest-path .cache/build/libkrun/Cargo.toml --release --locked -p libkrun
+make -C .cache/build/libkrunfw/libkrunfw
+
+cp .cache/build/libkrun/target/release/libkrun.dylib bin/runtime/libkrun.1.dylib
+cp .cache/build/libkrunfw/libkrunfw/libkrunfw.5.dylib bin/runtime/
+cp .cache/downloads/rootfs.tar.gz bin/runtime/
+install_name_tool -id @rpath/libkrun.1.dylib bin/runtime/libkrun.1.dylib
+install_name_tool -id @rpath/libkrunfw.5.dylib bin/runtime/libkrunfw.5.dylib
+clang -Wall -Wextra -Werror -O2 -I.cache/build/libkrun/include \
+  native/shell.c bin/runtime/libkrun.1.dylib -Wl,-rpath,@loader_path -o bin/runtime/ctx-krun
+codesign --force --sign - bin/runtime/libkrun.1.dylib
+codesign --force --sign - bin/runtime/libkrunfw.5.dylib
+codesign --force --sign - --entitlements native/entitlements.plist bin/runtime/ctx-krun
+
+mkdir -p bin/runtime/licenses
+cp .cache/build/libkrun/LICENSE bin/runtime/licenses/libkrun-APACHE-2.0
+cp .cache/build/libkrunfw/libkrunfw/LICENSE-* bin/runtime/licenses/
+cp THIRD_PARTY.md bin/runtime/
+cp LICENSE bin/runtime/
+echo 'macOS runtime ready' >&2
