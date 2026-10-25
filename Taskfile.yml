@@ -49,6 +49,13 @@ tasks:
       - task: build
       - ./bin/wolfcow spike exec -- /bin/uname -r
 
+  stage:b:
+    desc: Run Stage B smoke and protocol conformance checks on macOS libkrun
+    cmds:
+      - task: build
+      - sh hack/check-stage-b.sh
+      - ./bin/wolfcow spike conformance examples/stage-b
+
   security:app-sandbox:
     desc: Probe App Sandbox signing and private-file denial (experimental)
     cmds:

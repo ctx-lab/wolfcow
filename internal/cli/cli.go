@@ -71,6 +71,20 @@ func newCommand(launch func(string) error) *cobra.Command {
 			return spike.RunExec(cmd.Context(), args, cmd.OutOrStdout(), cmd.ErrOrStderr())
 		},
 	})
+	spikeCmd.AddCommand(&cobra.Command{
+		Use: "workspace SOURCE -- COMMAND [ARG...]", Short: "Exercise copied workspace and guest file protocol",
+		Args: cobra.MinimumNArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return spike.RunWorkspace(cmd.Context(), args[0], args[1:], cmd.OutOrStdout(), cmd.ErrOrStderr())
+		},
+	})
+	spikeCmd.AddCommand(&cobra.Command{
+		Use: "conformance SOURCE", Short: "Check the Stage B guest control contract",
+		Args: cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return spike.RunConformance(cmd.Context(), args[0], cmd.OutOrStdout())
+		},
+	})
 	root.AddCommand(spikeCmd)
 	return root
 }

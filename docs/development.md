@@ -12,6 +12,7 @@ task verify          # Go tests, vet, and static Linux guest build
 task package         # self-contained macOS archive in dist/
 ./bin/wolfcow shell     # boot a disposable shell
 task stage:a         # experimental guest ready + exec over vsock
+task stage:b         # copied workspace smoke and guest protocol conformance
 ```
 
 The default rootfs is recreated for every run and removed on exit. An optional
@@ -25,9 +26,38 @@ and image staging; `internal/protocol` defines the bounded guest stream.
 `cmd/wolfcow-guest` builds a static Linux guest agent. `internal/cli` owns the
 command surface. `task stage:a` uses a hidden development command and requires
 a macOS terminal that permits local Unix sockets and the Hypervisor framework.
+`task stage:b` copies `examples/stage-b` into disposable guest storage, runs a
+command in `/work`, then prints the changed files and a text diff. It does not
+write changes back to the source directory. The probe accepts regular files
+only, with a 256 file, 256 KiB per file, and 4 MiB total limit. Both probes
+remain experimental.
 Native C interop lives in `native/`; reproducible build and probe scripts live
 in `hack/`. The backend interface and guest protocol are experimental; egress
 and session packages will be added as those capabilities are implemented.
+
+## GitHub Actions
+
+Pull requests and pushes run Go tests, vet, the static guest cross-build, and
+`task build` on GitHub's Apple Silicon `macos-15` runner. That runner can build
+the bundle but cannot boot this libkrun VM because GitHub-hosted macOS runners
+do not expose nested virtualization.
+
+The separate **macOS VM conformance** workflow runs `task verify` and
+`task stage:b` on a physical Apple Silicon Mac. To enable it:
+
+1. Register a dedicated macOS ARM64 runner in the `wolfcow-vm` organization
+   runner group. Restrict the group to this repository and to
+   `ctx-lab/wolfcow/.github/workflows/vm.yml@refs/heads/main`.
+2. Install Task, Rust/Cargo, and Apple command line tools on that Mac. The
+   workflow installs Go through `actions/setup-go`.
+3. Set the repository Actions variable `WOLFCOW_VM_RUNNER` to `enabled`.
+4. Dispatch **macOS VM conformance** from `main` in GitHub Actions.
+
+The VM workflow does not run pull-request code on the physical runner. Keep
+this runner separate from personal files and credentials; GitHub warns that
+self-hosted runners attached to public repositories can be reached by unsafe
+workflow configuration. See [runner groups](https://docs.github.com/en/actions/how-tos/manage-runners/self-hosted-runners/manage-access)
+and [GitHub's runner security guidance](https://docs.github.com/en/actions/reference/security/secure-use).
 
 ## App Sandbox probe
 

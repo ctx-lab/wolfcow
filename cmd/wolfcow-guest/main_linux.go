@@ -70,7 +70,7 @@ func handle(conn *os.File) {
 	kernel := chars(uname.Release[:])
 	if err := protocol.Write(conn, protocol.Message{
 		Type: "ready", Major: protocol.Major, Minor: protocol.Minor,
-		Operations: []string{"exec"}, Kernel: kernel,
+		Operations: []string{"exec", "read", "write", "diff"}, Kernel: kernel,
 	}); err != nil {
 		return
 	}
@@ -79,12 +79,23 @@ func handle(conn *os.File) {
 		if err != nil {
 			return
 		}
-		if request.Type != "exec.start" || request.ID == "" || len(request.Argv) == 0 || request.Argv[0] == "" {
-			_ = protocol.Write(conn, protocol.Message{Type: "error", ID: request.ID, Code: "BAD_REQUEST", Error: "expected exec.start with id and argv"})
-			continue
+		if request.ID == "" || len(request.ID) > 128 {
+			_ = protocol.Write(conn, protocol.Message{Type: "error", ID: request.ID, Code: "BAD_REQUEST", Error: "invalid request id"})
+			return
 		}
-		execute(conn, request)
-		return // One execution per control connection in Stage A.
+		switch request.Type {
+		case "exec.start":
+			if len(request.Argv) == 0 || request.Argv[0] == "" {
+				_ = protocol.Write(conn, protocol.Message{Type: "error", ID: request.ID, Code: "BAD_REQUEST", Error: "expected argv"})
+				return
+			}
+			execute(conn, request)
+		case "file.read", "file.write", "workspace.diff":
+			handleFile(conn, request)
+		default:
+			_ = protocol.Write(conn, protocol.Message{Type: "error", ID: request.ID, Code: "BAD_REQUEST", Error: "unknown operation"})
+		}
+		return // One operation per control connection.
 	}
 }
 

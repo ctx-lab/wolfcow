@@ -118,6 +118,10 @@ func runControl(ctx context.Context, conn io.ReadWriteCloser, argv []string, std
 }
 
 func execAfterReady(ctx context.Context, conn io.ReadWriteCloser, ready protocol.Message, argv []string, stdout, stderr io.Writer) error {
+	return execInDir(ctx, conn, ready, argv, "/", stdout, stderr)
+}
+
+func execInDir(ctx context.Context, conn io.ReadWriteCloser, ready protocol.Message, argv []string, dir string, stdout, stderr io.Writer) error {
 	if ready.Type != "ready" || ready.Major != protocol.Major || ready.Kernel == "" {
 		return fmt.Errorf("unsupported guest protocol: type=%q version=%d", ready.Type, ready.Major)
 	}
@@ -137,7 +141,7 @@ func execAfterReady(ctx context.Context, conn io.ReadWriteCloser, ready protocol
 	if timed, ok := conn.(net.Conn); ok {
 		_ = timed.SetDeadline(deadline.Add(time.Second))
 	}
-	request := protocol.Message{Type: "exec.start", ID: "stage-a", Argv: argv, Dir: "/", DeadlineMS: deadline.UnixMilli(), OutputMax: protocol.MaxOutput}
+	request := protocol.Message{Type: "exec.start", ID: "spike-exec", Argv: argv, Dir: dir, DeadlineMS: deadline.UnixMilli(), OutputMax: protocol.MaxOutput}
 	if err := protocol.Write(conn, request); err != nil {
 		return fmt.Errorf("send guest exec: %w", err)
 	}

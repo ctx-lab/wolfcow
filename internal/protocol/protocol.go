@@ -2,6 +2,7 @@
 package protocol
 
 import (
+	"bytes"
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
@@ -10,14 +11,17 @@ import (
 
 const (
 	Major         = 1
-	Minor         = 0
+	Minor         = 1
 	MaxFrame      = 1 << 20
 	MaxOutput     = 16 << 20
 	ControlPort   = 15000
 	MaxExecMillis = 5 * 60 * 1000
+	MaxFile       = 256 << 10
+	MaxWorkspace  = 4 << 20
+	MaxFiles      = 256
 )
 
-// Message is the Stage A envelope. Data is base64 encoded by encoding/json.
+// Message is the host/guest control envelope. Data is base64 encoded by encoding/json.
 // The type determines which fields are meaningful.
 type Message struct {
 	Type       string   `json:"type"`
@@ -32,11 +36,19 @@ type Message struct {
 	DeadlineMS int64    `json:"deadline_ms,omitempty"`
 	OutputMax  int64    `json:"output_max,omitempty"`
 	Data       []byte   `json:"data,omitempty"`
+	Path       string   `json:"path,omitempty"`
+	Changes    []Change `json:"changes,omitempty"`
+	Files      []string `json:"files,omitempty"`
 	ExitCode   *int     `json:"exit_code,omitempty"`
 	Signal     string   `json:"signal,omitempty"`
 	Status     string   `json:"status,omitempty"`
 	Code       string   `json:"code,omitempty"`
 	Error      string   `json:"error,omitempty"`
+}
+
+type Change struct {
+	Path string `json:"path"`
+	Kind string `json:"kind"`
 }
 
 func Read(r io.Reader) (Message, error) {
@@ -53,8 +65,14 @@ func Read(r io.Reader) (Message, error) {
 		return Message{}, err
 	}
 	var m Message
-	if err := json.Unmarshal(data, &m); err != nil {
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&m); err != nil {
 		return Message{}, fmt.Errorf("invalid control JSON: %w", err)
+	}
+	var trailing any
+	if err := decoder.Decode(&trailing); err != io.EOF {
+		return Message{}, fmt.Errorf("invalid control JSON: trailing value")
 	}
 	if m.Type == "" {
 		return Message{}, fmt.Errorf("control message missing type")

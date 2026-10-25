@@ -22,6 +22,24 @@ jobs:
       - run: go build -o /tmp/wolfcow ./cmd/wolfcow
       - run: CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o /tmp/wolfcow-guest ./cmd/wolfcow-guest
 
+  runtime-build:
+    name: Build Apple Silicon runtime
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - name: Install Task
+        run: brew install go-task
+      - name: Confirm target architecture
+        run: test "$(uname -s)/$(uname -m)" = Darwin/arm64
+      - name: Build bundled runtime and CLI
+        run: task build
+
   secrets:
     runs-on: ubuntu-latest
     steps:

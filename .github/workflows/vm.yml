@@ -1,0 +1,33 @@
+name: macOS VM conformance
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  stage-b:
+    if: github.repository == 'ctx-lab/wolfcow' && github.ref == 'refs/heads/main' && vars.WOLFCOW_VM_RUNNER == 'enabled'
+    runs-on:
+      group: wolfcow-vm
+      labels: [self-hosted, macOS, ARM64]
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - name: Check physical Apple Silicon host and tools
+        run: |
+          test "$(uname -s)/$(uname -m)" = Darwin/arm64
+          test "$(sysctl -n kern.hv_support)" = 1
+          command -v task
+          command -v cargo
+          command -v rustc
+      - name: Verify Go and guest build
+        run: task verify
+      - name: Run Stage B on libkrun
+        run: task stage:b

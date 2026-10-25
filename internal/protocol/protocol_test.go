@@ -30,3 +30,15 @@ func TestOversizeHeaderRejectedBeforeBodyRead(t *testing.T) {
 		t.Fatalf("expected size rejection, got %v", err)
 	}
 }
+
+func TestUnknownFieldRejected(t *testing.T) {
+	body := []byte(`{"type":"file.read","path":"note","unexpected":true}`)
+	var frame bytes.Buffer
+	var header [4]byte
+	binary.BigEndian.PutUint32(header[:], uint32(len(body)))
+	frame.Write(header[:])
+	frame.Write(body)
+	if _, err := Read(&frame); err == nil {
+		t.Fatal("accepted unknown field")
+	}
+}
