@@ -14,6 +14,8 @@ task package         # self-contained macOS archive in dist/
 task stage:a         # experimental guest ready + exec over vsock
 task stage:b         # copied workspace smoke and guest protocol conformance
 task image:smoke     # boot the pinned image and check shell and CA bundle
+task net:link        # experimental virtio-net/gvproxy local connectivity
+task net:external    # optional external TCP CONNECT smoke on physical macOS
 ```
 
 The default rootfs is recreated for every run and removed on exit. An optional
@@ -28,6 +30,33 @@ compares it with `images/alpine-minirootfs-3.22.2-aarch64.json`, and includes
 the manifest in the runtime archive. `task image:smoke` then checks that the
 image boots with BusyBox and the CA bundle. Python, Bash, and Git are deferred
 until the coding-agent fixture needs them.
+
+`task net:link` attaches a temporary virtio-net device to the bundled gvproxy
+and asks the guest to reach its local health endpoint and one synthetic
+endpoint through an explicit HTTP proxy request. It also checks denied
+hostnames and raw-IP requests. The probe uses BusyBox `wget` with an explicit
+proxy setting. The bundled gvproxy is built from pinned v0.8.9
+source with `hack/patches/gvproxy-deny-egress.patch`: unknown DNS names get
+NXDOMAIN, direct TCP and UDP forwarding is disabled, and the guest cannot call
+gvproxy's mutable forwarding API. The synthetic endpoint returns static JSON
+without a host network dial or credential substitution. The build fetches a
+pinned Go 1.25 toolchain for that upstream source; the main project still uses
+the installed Go. `internal/network.Policy` now represents per-run TCP
+destinations as exact DNS name and port pairs. `internal/run.Spec.Network`
+attaches the network only when that list is nonempty, and the hidden
+`spike workspace --allow-tcp HOST:PORT` flag exercises the path. The host
+proxy accepts CONNECT for an allowed pair, checks resolved IPv4 addresses
+against private and special-purpose ranges, and
+dials the selected IP without a second DNS lookup. Direct guest connections
+remain denied. The guest command receives HTTP(S) proxy environment variables.
+The proxy tunnels opaque TCP bytes, so the guest client is responsible for TLS
+validation. IPv6, credential substitution, and a public network CLI are not
+implemented. `task net:external` has established a CONNECT tunnel to the
+explicitly allowed `example.com:80` from a guest on physical Apple Silicon
+macOS. That probe checks tunnel establishment, not application data or TLS.
+It uses the workspace development command, so its output also includes the
+unrelated `host-note.txt` fixture diff. A complete negative egress suite is
+still needed before this path is a security gate.
 
 The Go module is `github.com/ctx-lab/wolfcow`. `internal/vmm` owns VM lifecycle
 and image staging; `internal/protocol` defines the bounded guest stream.

@@ -19,6 +19,7 @@ import (
 type BootSpec struct {
 	Rootfs    string
 	Socket    string
+	NetSocket string // Optional gvproxy transport; empty keeps the guest offline.
 	CPUs      uint8
 	MemoryMiB uint32
 }
@@ -47,6 +48,18 @@ func (b Libkrun) Boot(ctx context.Context, spec BootSpec) (Machine, error) {
 	if !filepath.IsAbs(spec.Rootfs) || !filepath.IsAbs(spec.Socket) {
 		return nil, fmt.Errorf("VM paths must be absolute")
 	}
+	if spec.NetSocket != "" {
+		if !filepath.IsAbs(spec.NetSocket) {
+			return nil, fmt.Errorf("network socket path must be absolute")
+		}
+		info, err := os.Lstat(spec.NetSocket)
+		if err != nil {
+			return nil, fmt.Errorf("network socket: %w", err)
+		}
+		if info.Mode()&os.ModeSocket == 0 {
+			return nil, fmt.Errorf("network endpoint is not a socket")
+		}
+	}
 	if spec.CPUs < 1 || spec.CPUs > 8 || spec.MemoryMiB < 128 || spec.MemoryMiB > 8192 {
 		return nil, fmt.Errorf("VM resources out of Stage A range")
 	}
@@ -56,8 +69,11 @@ func (b Libkrun) Boot(ctx context.Context, spec BootSpec) (Machine, error) {
 		return nil, err
 	}
 	helper := filepath.Join(b.Bundle, "wolfcow-krun")
-	cmd := exec.Command(helper, "--agent", spec.Rootfs, spec.Socket,
-		fmt.Sprint(spec.CPUs), fmt.Sprint(spec.MemoryMiB))
+	args := []string{"--agent", spec.Rootfs, spec.Socket, fmt.Sprint(spec.CPUs), fmt.Sprint(spec.MemoryMiB)}
+	if spec.NetSocket != "" {
+		args = []string{"--agent-net", spec.Rootfs, spec.Socket, spec.NetSocket, fmt.Sprint(spec.CPUs), fmt.Sprint(spec.MemoryMiB)}
+	}
+	cmd := exec.Command(helper, args...)
 	cmd.Env = []string{"PATH=/usr/bin:/bin"}
 	// A writer wrapper makes exec.Cmd give the helper pipes instead of the user's
 	// TTY. libkrun otherwise puts that TTY in raw mode while the VM runs.

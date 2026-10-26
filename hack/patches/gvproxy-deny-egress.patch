@@ -1,0 +1,824 @@
+--- a/pkg/virtualnetwork/services.go
++++ b/pkg/virtualnetwork/services.go
+@@ -4,7 +4,6 @@
+ 	"net"
+ 	"net/http"
+ 	"strings"
+-	"sync"
+ 
+ 	"github.com/containers/gvisor-tap-vsock/pkg/services/dhcp"
+ 	"github.com/containers/gvisor-tap-vsock/pkg/services/dns"
+@@ -21,12 +20,11 @@
+ )
+ 
+ func addServices(configuration *types.Configuration, s *stack.Stack, ipPool *tap.IPPool) (http.Handler, error) {
+-	var natLock sync.Mutex
+-	translation := parseNATTable(configuration)
+-
+-	tcpForwarder := forwarder.TCP(s, translation, &natLock, configuration.Ec2MetadataAccess)
++	// Wolfcow: reject every guest TCP and UDP flow that does not terminate in a
++	// service bound inside this virtual stack. No host dial occurs here.
++	tcpForwarder := tcp.NewForwarder(s, 0, 10, func(r *tcp.ForwarderRequest) { r.Complete(true) })
+ 	s.SetTransportProtocolHandler(tcp.ProtocolNumber, tcpForwarder.HandlePacket)
+-	udpForwarder := forwarder.UDP(s, translation, &natLock, configuration.Ec2MetadataAccess)
++	udpForwarder := udp.NewForwarder(s, func(*udp.ForwarderRequest) {})
+ 	s.SetTransportProtocolHandler(udp.ProtocolNumber, udpForwarder.HandlePacket)
+ 
+ 	dnsMux, err := dnsServer(configuration, s)
+--- a/pkg/services/dns/dns.go
++++ b/pkg/services/dns/dns.go
+@@ -121,119 +121,9 @@
+ 		if done := h.addLocalAnswers(m, q); done {
+ 			return
+ 		}
+-
+-		resolver := h.upstream
+-		switch q.Qtype {
+-		case dns.TypeA:
+-			ips, err := resolver.LookupIPAddr(context.TODO(), q.Name)
+-			if err != nil {
+-				m.Rcode = dns.RcodeNameError
+-				return
+-			}
+-			for _, ip := range ips {
+-				if len(ip.IP.To4()) != net.IPv4len {
+-					continue
+-				}
+-				m.Answer = append(m.Answer, &dns.A{
+-					Hdr: dns.RR_Header{
+-						Name:   q.Name,
+-						Rrtype: dns.TypeA,
+-						Class:  dns.ClassINET,
+-						Ttl:    0,
+-					},
+-					A: ip.IP.To4(),
+-				})
+-			}
+-		case dns.TypeCNAME:
+-			cname, err := resolver.LookupCNAME(context.TODO(), q.Name)
+-			if err != nil {
+-				m.Rcode = dns.RcodeNameError
+-				return
+-			}
+-			m.Answer = append(m.Answer, &dns.CNAME{
+-				Hdr: dns.RR_Header{
+-					Name:   q.Name,
+-					Rrtype: dns.TypeCNAME,
+-					Class:  dns.ClassINET,
+-					Ttl:    0,
+-				},
+-				Target: cname,
+-			})
+-		case dns.TypeMX:
+-			records, err := resolver.LookupMX(context.TODO(), q.Name)
+-			if err != nil {
+-				m.Rcode = dns.RcodeNameError
+-				return
+-			}
+-			for _, mx := range records {
+-				m.Answer = append(m.Answer, &dns.MX{
+-					Hdr: dns.RR_Header{
+-						Name:   q.Name,
+-						Rrtype: dns.TypeMX,
+-						Class:  dns.ClassINET,
+-						Ttl:    0,
+-					},
+-					Mx:         mx.Host,
+-					Preference: mx.Pref,
+-				})
+-			}
+-		case dns.TypeNS:
+-			records, err := resolver.LookupNS(context.TODO(), q.Name)
+-			if err != nil {
+-				m.Rcode = dns.RcodeNameError
+-				return
+-			}
+-			for _, ns := range records {
+-				m.Answer = append(m.Answer, &dns.NS{
+-					Hdr: dns.RR_Header{
+-						Name:   q.Name,
+-						Rrtype: dns.TypeNS,
+-						Class:  dns.ClassINET,
+-						Ttl:    0,
+-					},
+-					Ns: ns.Host,
+-				})
+-			}
+-		case dns.TypeSRV:
+-			_, records, err := resolver.LookupSRV(context.TODO(), "", "", q.Name)
+-			if err != nil {
+-				m.Rcode = dns.RcodeNameError
+-				return
+-			}
+-			for _, srv := range records {
+-				m.Answer = append(m.Answer, &dns.SRV{
+-					Hdr: dns.RR_Header{
+-						Name:   q.Name,
+-						Rrtype: dns.TypeSRV,
+-						Class:  dns.ClassINET,
+-						Ttl:    0,
+-					},
+-					Port:     srv.Port,
+-					Priority: srv.Priority,
+-					Target:   srv.Target,
+-					Weight:   srv.Weight,
+-				})
+-			}
+-		case dns.TypeTXT:
+-			txts, err := resolver.LookupTXT(context.TODO(), q.Name)
+-			if err != nil {
+-				m.Rcode = dns.RcodeNameError
+-				return
+-			}
+-
+-			for _, txt := range txts {
+-				m.Answer = append(m.Answer, &dns.TXT{
+-					Hdr: dns.RR_Header{
+-						Name:   q.Name,
+-						Rrtype: dns.TypeTXT,
+-						Class:  dns.ClassINET,
+-						Ttl:    0,
+-					},
+-					Txt: splitTxt(txt),
+-				})
+-			}
+-
+-		}
++		// Wolfcow: unknown guest names never reach the host resolver.
++		m.Rcode = dns.RcodeNameError
++		return
+ 	}
+ }
+ 
+--- a/cmd/gvproxy/main.go
++++ b/cmd/gvproxy/main.go
+@@ -122,6 +122,10 @@
+ }
+ 
+ func run(ctx context.Context, g *errgroup.Group, config *GvproxyConfig) error {
++	policy, err := wolfcowLoadPolicy(os.Getenv("WOLFCOW_POLICY_FILE"))
++	if err != nil {
++		return err
++	}
+ 	vn, err := virtualnetwork.New(&config.Stack)
+ 	if err != nil {
+ 		return err
+@@ -161,11 +165,9 @@
+ 	if err != nil {
+ 		return err
+ 	}
+-	mux := http.NewServeMux()
+-	mux.Handle("/services/forwarder/all", vn.Mux())
+-	mux.Handle("/services/forwarder/expose", vn.Mux())
+-	mux.Handle("/services/forwarder/unexpose", vn.Mux())
+-	httpServe(ctx, g, ln, mux)
++	// Wolfcow: guest access is restricted to local health and one synthetic
++	// explicit-proxy endpoint. The mutable forwarding API is not exposed.
++	httpServe(ctx, g, ln, wolfcowGuestHandler(policy))
+ 
+ 	if InDebugMode() {
+ 		g.Go(func() error {
+--- /dev/null
++++ b/pkg/services/dns/wolfcow_deny_test.go
+@@ -0,0 +1,18 @@
++package dns
++
++import (
++	"testing"
++
++	"github.com/miekg/dns"
++)
++
++func TestWolfcowUnknownNameDeniedWithoutHostResolver(t *testing.T) {
++	handler := &dnsHandler{}
++	query := new(dns.Msg)
++	query.SetQuestion("blocked.example.", dns.TypeA)
++
++	handler.addAnswers(query)
++	if query.Rcode != dns.RcodeNameError {
++		t.Fatalf("unknown name response = %d, want NXDOMAIN", query.Rcode)
++	}
++}
+--- /dev/null
++++ b/cmd/gvproxy/wolfcow_proxy.go
+@@ -0,0 +1,148 @@
++package main
++
++import (
++	"context"
++	"errors"
++	"fmt"
++	"io"
++	"net"
++	"net/http"
++	"net/netip"
++	"strconv"
++	"time"
++
++	log "github.com/sirupsen/logrus"
++)
++
++// wolfcowGuestHandler serves a local synthetic fixture and policy-gated CONNECT.
++// The fixture performs no DNS lookup or host dial. CONNECT resolves and dials
++// only destinations allowed by the exact hostname and port policy.
++func wolfcowGuestHandler(policy wolfcowPolicy) http.Handler {
++	return wolfcowGuestHandlerWithNetwork(policy, net.DefaultResolver.LookupNetIP,
++		(&net.Dialer{Timeout: 5 * time.Second}).DialContext)
++}
++
++func wolfcowGuestHandlerWithNetwork(
++	policy wolfcowPolicy,
++	lookup func(context.Context, string, string) ([]netip.Addr, error),
++	dial func(context.Context, string, string) (net.Conn, error),
++) http.Handler {
++	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
++		if r.Method == http.MethodConnect {
++			wolfcowConnect(w, r, policy, lookup, dial)
++			return
++		}
++		if r.Method == http.MethodGet && !r.URL.IsAbs() &&
++			(r.Host == "192.168.127.1" || r.Host == "192.168.127.1:80") &&
++			r.URL.Path == "/wolfcow/health" &&
++			r.URL.RawQuery == "" {
++			_, _ = w.Write([]byte("wolfcow network ready\n"))
++			return
++		}
++
++		if r.Method == http.MethodGet && r.URL.IsAbs() &&
++			r.URL.Scheme == "http" && r.URL.Hostname() == "allowed.wolfcow.invalid" &&
++			(r.URL.Port() == "" || r.URL.Port() == "80") && r.URL.User == nil &&
++			r.URL.Path == "/probe" && r.URL.RawQuery == "" &&
++			r.URL.Fragment == "" {
++			w.Header().Set("Content-Type", "application/json")
++			w.Header().Set("Cache-Control", "no-store")
++			_, _ = w.Write([]byte("{\"ok\":true,\"endpoint\":\"synthetic\"}\n"))
++			return
++		}
++
++		// A bounded diagnostic for the hidden development probe. It reveals no
++		// request value or credential and helps distinguish parsing from policy.
++		diagnostic := fmt.Sprintf("get=%t absolute=%t scheme=%t name=%t port=%t route=%t query_empty=%t user_nil=%t fragment_empty=%t",
++			r.Method == http.MethodGet, r.URL.IsAbs(), r.URL.Scheme == "http",
++			r.URL.Hostname() == "allowed.wolfcow.invalid", r.URL.Port() == "" || r.URL.Port() == "80",
++			r.URL.Path == "/probe", r.URL.RawQuery == "", r.URL.User == nil,
++			r.URL.Fragment == "")
++		w.Header().Set("X-Wolfcow-Policy", diagnostic)
++		log.Infof("wolfcow synthetic proxy denied: %s", diagnostic)
++		http.Error(w, "wolfcow: destination denied", http.StatusForbidden)
++	})
++}
++
++func wolfcowConnect(
++	w http.ResponseWriter, r *http.Request, policy wolfcowPolicy,
++	lookup func(context.Context, string, string) ([]netip.Addr, error),
++	dial func(context.Context, string, string) (net.Conn, error),
++) {
++	target := r.URL.Host
++	host, portText, err := net.SplitHostPort(target)
++	if err != nil || r.URL.Scheme != "" || r.URL.Path != "" ||
++		(r.RequestURI != "" && r.RequestURI != target) || !wolfcowValidHost(host) {
++		http.Error(w, "wolfcow: destination denied", http.StatusForbidden)
++		return
++	}
++	portNumber, err := strconv.ParseUint(portText, 10, 16)
++	if err != nil || !policy.allows(host, uint16(portNumber)) {
++		http.Error(w, "wolfcow: destination denied", http.StatusForbidden)
++		return
++	}
++	dialCtx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
++	defer cancel()
++	address, err := wolfcowResolvePublic(dialCtx, host, lookup)
++	if err != nil {
++		var failure *wolfcowResolveFailure
++		if errors.As(err, &failure) {
++			w.Header().Set("X-Wolfcow-Connect-Error", failure.Kind)
++		} else {
++			w.Header().Set("X-Wolfcow-Connect-Error", "resolve")
++		}
++		if errors.Is(err, context.Canceled) {
++			w.Header().Set("X-Wolfcow-DNS-Detail", "canceled")
++		} else if errors.Is(err, context.DeadlineExceeded) {
++			w.Header().Set("X-Wolfcow-DNS-Detail", "deadline")
++		} else {
++			var dnsError *net.DNSError
++			if errors.As(err, &dnsError) {
++				switch {
++				case dnsError.IsTimeout:
++					w.Header().Set("X-Wolfcow-DNS-Detail", "timeout")
++				case dnsError.IsNotFound:
++					w.Header().Set("X-Wolfcow-DNS-Detail", "not-found")
++				case dnsError.IsTemporary:
++					w.Header().Set("X-Wolfcow-DNS-Detail", "temporary")
++				default:
++					w.Header().Set("X-Wolfcow-DNS-Detail", "other")
++				}
++			}
++		}
++		http.Error(w, "wolfcow: destination unavailable", http.StatusBadGateway)
++		return
++	}
++	outbound, err := dial(dialCtx, "tcp", net.JoinHostPort(address.String(), portText))
++	if err != nil {
++		w.Header().Set("X-Wolfcow-Connect-Error", "dial")
++		http.Error(w, "wolfcow: destination unavailable", http.StatusBadGateway)
++		return
++	}
++	defer outbound.Close()
++	hijacker, ok := w.(http.Hijacker)
++	if !ok {
++		http.Error(w, "wolfcow: transport unavailable", http.StatusInternalServerError)
++		return
++	}
++	guest, buffered, err := hijacker.Hijack()
++	if err != nil {
++		return
++	}
++	defer guest.Close()
++	if _, err := fmt.Fprint(buffered, "HTTP/1.1 200 Connection Established\r\n\r\n"); err != nil {
++		return
++	}
++	if err := buffered.Flush(); err != nil {
++		return
++	}
++	done := make(chan struct{})
++	go func() {
++		_, _ = io.Copy(outbound, buffered)
++		close(done)
++	}()
++	_, _ = io.Copy(guest, outbound)
++	_ = guest.Close()
++	_ = outbound.Close()
++	<-done
++}
+--- /dev/null
++++ b/cmd/gvproxy/wolfcow_proxy_test.go
+@@ -0,0 +1,101 @@
++package main
++
++import (
++	"bufio"
++	"net/http"
++	"net/http/httptest"
++	"net/url"
++	"strings"
++	"testing"
++)
++
++func TestWolfcowSyntheticProxyPolicy(t *testing.T) {
++	handler := wolfcowGuestHandler(wolfcowPolicy{})
++	tests := []struct {
++		name   string
++		method string
++		uri    string
++		host   string
++		status int
++	}{
++		{"allowed", "GET", "http://allowed.wolfcow.invalid/probe", "allowed.wolfcow.invalid", http.StatusOK},
++		{"explicit default port", "GET", "http://allowed.wolfcow.invalid:80/probe", "allowed.wolfcow.invalid", http.StatusOK},
++		{"blocked name", "GET", "http://blocked.example/probe", "blocked.example", http.StatusForbidden},
++		{"hostname suffix", "GET", "http://allowed.wolfcow.invalid.evil/probe", "allowed.wolfcow.invalid.evil", http.StatusForbidden},
++		{"userinfo", "GET", "http://blocked.example@allowed.wolfcow.invalid/probe", "allowed.wolfcow.invalid", http.StatusForbidden},
++		{"raw IP", "GET", "http://198.51.100.1/probe", "198.51.100.1", http.StatusForbidden},
++		{"other port", "GET", "http://allowed.wolfcow.invalid:8080/probe", "allowed.wolfcow.invalid:8080", http.StatusForbidden},
++		{"TLS tunnel", "CONNECT", "https://allowed.wolfcow.invalid/", "allowed.wolfcow.invalid", http.StatusForbidden},
++		{"other route", "GET", "http://allowed.wolfcow.invalid/other", "allowed.wolfcow.invalid", http.StatusForbidden},
++		{"redirect route", "GET", "http://allowed.wolfcow.invalid/redirect", "allowed.wolfcow.invalid", http.StatusForbidden},
++		{"query", "GET", "http://allowed.wolfcow.invalid/probe?next=http://blocked.example", "allowed.wolfcow.invalid", http.StatusForbidden},
++		{"conflicting Host header ignored", "GET", "http://allowed.wolfcow.invalid/probe", "blocked.example", http.StatusOK},
++		{"connect", "CONNECT", "http://allowed.wolfcow.invalid/probe", "allowed.wolfcow.invalid", http.StatusForbidden},
++		{"gateway via proxy", "GET", "http://allowed.wolfcow.invalid/wolfcow/health", "allowed.wolfcow.invalid", http.StatusForbidden},
++	}
++	for _, tc := range tests {
++		t.Run(tc.name, func(t *testing.T) {
++			r := &http.Request{Method: tc.method, URL: mustWolfcowURL(t, tc.uri), Host: tc.host, Header: make(http.Header)}
++			w := httptest.NewRecorder()
++			handler.ServeHTTP(w, r)
++			if w.Code != tc.status {
++				t.Fatalf("status = %d, want %d: %s", w.Code, tc.status, w.Body.String())
++			}
++			if tc.status == http.StatusOK {
++				if !strings.Contains(w.Body.String(), `"endpoint":"synthetic"`) || w.Header().Get("Location") != "" {
++					t.Fatalf("unexpected response: headers %v, body %s", w.Header(), w.Body.String())
++				}
++			}
++		})
++	}
++
++	t.Run("origin form cannot forge allowed host", func(t *testing.T) {
++		r := &http.Request{Method: http.MethodGet, URL: &url.URL{Path: "/probe"}, Host: "allowed.wolfcow.invalid"}
++		w := httptest.NewRecorder()
++		handler.ServeHTTP(w, r)
++		if w.Code != http.StatusForbidden {
++			t.Fatalf("status = %d, want forbidden", w.Code)
++		}
++	})
++	t.Run("gateway health", func(t *testing.T) {
++		for _, host := range []string{"192.168.127.1", "192.168.127.1:80"} {
++			r := &http.Request{Method: http.MethodGet, URL: &url.URL{Path: "/wolfcow/health"}, Host: host}
++			w := httptest.NewRecorder()
++			handler.ServeHTTP(w, r)
++			if w.Code != http.StatusOK || w.Body.String() != "wolfcow network ready\n" {
++				t.Fatalf("health host = %q, status = %d, body = %q", host, w.Code, w.Body.String())
++			}
++		}
++	})
++	t.Run("absolute request target on wire", func(t *testing.T) {
++		r, err := http.ReadRequest(bufio.NewReader(strings.NewReader("GET http://allowed.wolfcow.invalid/probe HTTP/1.1\r\nHost: 192.168.127.1\r\n\r\n")))
++		if err != nil {
++			t.Fatal(err)
++		}
++		w := httptest.NewRecorder()
++		handler.ServeHTTP(w, r)
++		if w.Code != http.StatusOK {
++			t.Fatalf("status = %d, URL = %#v, Host = %q", w.Code, r.URL, r.Host)
++		}
++	})
++	t.Run("gateway health with explicit port on wire", func(t *testing.T) {
++		r, err := http.ReadRequest(bufio.NewReader(strings.NewReader("GET /wolfcow/health HTTP/1.1\r\nHost: 192.168.127.1:80\r\n\r\n")))
++		if err != nil {
++			t.Fatal(err)
++		}
++		w := httptest.NewRecorder()
++		handler.ServeHTTP(w, r)
++		if w.Code != http.StatusOK {
++			t.Fatalf("status = %d, Host = %q", w.Code, r.Host)
++		}
++	})
++}
++
++func mustWolfcowURL(t *testing.T, raw string) *url.URL {
++	t.Helper()
++	u, err := url.Parse(raw)
++	if err != nil {
++		t.Fatal(err)
++	}
++	return u
++}
+--- /dev/null
++++ b/cmd/gvproxy/wolfcow_policy.go
+@@ -0,0 +1,140 @@
++package main
++
++import (
++	"context"
++	"encoding/json"
++	"fmt"
++	"io"
++	"net"
++	"net/netip"
++	"os"
++	"strings"
++)
++
++type wolfcowDestination struct {
++	Host string `json:"host"`
++	Port uint16 `json:"port"`
++}
++
++type wolfcowPolicy struct {
++	TCP []wolfcowDestination `json:"tcp"`
++}
++
++type wolfcowResolveFailure struct {
++	Kind string
++	Err  error
++}
++
++func (e *wolfcowResolveFailure) Error() string { return e.Err.Error() }
++func (e *wolfcowResolveFailure) Unwrap() error { return e.Err }
++
++func wolfcowLoadPolicy(path string) (wolfcowPolicy, error) {
++	var policy wolfcowPolicy
++	if path == "" {
++		return policy, nil
++	}
++	file, err := os.Open(path)
++	if err != nil {
++		return policy, err
++	}
++	defer file.Close()
++	info, err := file.Stat()
++	if err != nil {
++		return policy, err
++	}
++	if info.Size() > 16384 {
++		return policy, fmt.Errorf("network policy exceeds 16 KiB")
++	}
++	decoder := json.NewDecoder(io.LimitReader(file, 16384))
++	decoder.DisallowUnknownFields()
++	if err := decoder.Decode(&policy); err != nil {
++		return policy, fmt.Errorf("read network policy: %w", err)
++	}
++	var extra any
++	if err := decoder.Decode(&extra); err != io.EOF {
++		return policy, fmt.Errorf("network policy has trailing data")
++	}
++	if len(policy.TCP) > 64 {
++		return policy, fmt.Errorf("too many network destinations")
++	}
++	seen := make(map[wolfcowDestination]bool)
++	for _, destination := range policy.TCP {
++		if !wolfcowValidHost(destination.Host) || destination.Port == 0 || seen[destination] {
++			return policy, fmt.Errorf("invalid network destination")
++		}
++		seen[destination] = true
++	}
++	return policy, nil
++}
++
++func wolfcowValidHost(host string) bool {
++	if len(host) == 0 || len(host) > 253 || host != strings.ToLower(host) ||
++		net.ParseIP(host) != nil || !strings.Contains(host, ".") {
++		return false
++	}
++	for _, label := range strings.Split(host, ".") {
++		if len(label) == 0 || len(label) > 63 || label[0] == '-' || label[len(label)-1] == '-' {
++			return false
++		}
++		for _, character := range label {
++			if (character < 'a' || character > 'z') && (character < '0' || character > '9') && character != '-' {
++				return false
++			}
++		}
++	}
++	return true
++}
++
++func (p wolfcowPolicy) allows(host string, port uint16) bool {
++	for _, destination := range p.TCP {
++		if destination.Host == host && destination.Port == port {
++			return true
++		}
++	}
++	return false
++}
++
++var wolfcowSpecialIPv4 = []netip.Prefix{
++	netip.MustParsePrefix("0.0.0.0/8"),
++	netip.MustParsePrefix("100.64.0.0/10"),
++	netip.MustParsePrefix("169.254.0.0/16"),
++	netip.MustParsePrefix("192.0.0.0/24"),
++	netip.MustParsePrefix("192.0.2.0/24"),
++	netip.MustParsePrefix("192.88.99.0/24"),
++	netip.MustParsePrefix("198.18.0.0/15"),
++	netip.MustParsePrefix("198.51.100.0/24"),
++	netip.MustParsePrefix("203.0.113.0/24"),
++	netip.MustParsePrefix("224.0.0.0/4"),
++	netip.MustParsePrefix("240.0.0.0/4"),
++}
++
++func wolfcowPublicIPv4(address netip.Addr) bool {
++	address = address.Unmap()
++	if !address.Is4() || !address.IsGlobalUnicast() || address.IsPrivate() {
++		return false
++	}
++	for _, prefix := range wolfcowSpecialIPv4 {
++		if prefix.Contains(address) {
++			return false
++		}
++	}
++	return true
++}
++
++// Resolve once, reject a mixed public/private answer set, then dial the
++// selected literal IP. No second hostname lookup happens at connect time.
++func wolfcowResolvePublic(ctx context.Context, host string, lookup func(context.Context, string, string) ([]netip.Addr, error)) (netip.Addr, error) {
++	addresses, err := lookup(ctx, "ip4", host+".")
++	if err != nil {
++		return netip.Addr{}, &wolfcowResolveFailure{Kind: "dns", Err: err}
++	}
++	if len(addresses) == 0 {
++		return netip.Addr{}, &wolfcowResolveFailure{Kind: "no-ipv4", Err: fmt.Errorf("no IPv4 address")}
++	}
++	for _, address := range addresses {
++		if !wolfcowPublicIPv4(address) {
++			return netip.Addr{}, &wolfcowResolveFailure{Kind: "blocked-address", Err: fmt.Errorf("destination resolves to a non-public address")}
++		}
++	}
++	return addresses[0], nil
++}
+--- /dev/null
++++ b/cmd/gvproxy/wolfcow_policy_test.go
+@@ -0,0 +1,222 @@
++package main
++
++import (
++	"bufio"
++	"context"
++	"fmt"
++	"io"
++	"net"
++	"net/http"
++	"net/http/httptest"
++	"net/netip"
++	"os"
++	"path/filepath"
++	"strings"
++	"testing"
++	"time"
++)
++
++func TestWolfcowDestinationPolicy(t *testing.T) {
++	path := filepath.Join(t.TempDir(), "policy.json")
++	if err := os.WriteFile(path, []byte(`{"tcp":[{"host":"example.org","port":443}]}`), 0600); err != nil {
++		t.Fatal(err)
++	}
++	policy, err := wolfcowLoadPolicy(path)
++	if err != nil {
++		t.Fatal(err)
++	}
++	if !policy.allows("example.org", 443) || policy.allows("example.org", 80) || policy.allows("other.org", 443) {
++		t.Fatal("destination match is not exact")
++	}
++	for _, malformed := range []string{
++		`{"tcp":[{"host":"127.0.0.1","port":443}]}`,
++		`{"tcp":[{"host":"*.example.org","port":443}]}`,
++		`{"tcp":[{"host":"example.org","port":443},{"host":"example.org","port":443}]}`,
++		`{"tcp":[],"unexpected":true}`,
++	} {
++		if err := os.WriteFile(path, []byte(malformed), 0600); err != nil {
++			t.Fatal(err)
++		}
++		if _, err := wolfcowLoadPolicy(path); err == nil {
++			t.Errorf("accepted %s", malformed)
++		}
++	}
++}
++
++func TestWolfcowRejectsNonPublicResolution(t *testing.T) {
++	for _, address := range []string{"127.0.0.1", "10.1.2.3", "100.64.1.2", "169.254.1.1", "192.0.2.1", "198.18.1.1", "198.51.100.1", "203.0.113.1", "::1"} {
++		if wolfcowPublicIPv4(netip.MustParseAddr(address)) {
++			t.Errorf("accepted %s", address)
++		}
++	}
++	lookup := func(_ context.Context, _, _ string) ([]netip.Addr, error) {
++		return []netip.Addr{netip.MustParseAddr("8.8.8.8"), netip.MustParseAddr("127.0.0.1")}, nil
++	}
++	if _, err := wolfcowResolvePublic(context.Background(), "example.org", lookup); err == nil {
++		t.Fatal("accepted mixed public/private DNS answer")
++	}
++}
++
++func TestWolfcowConnectDeniesRawIPBeforeDial(t *testing.T) {
++	r, err := http.ReadRequest(bufio.NewReader(strings.NewReader("CONNECT 127.0.0.1:443 HTTP/1.1\r\nHost: 127.0.0.1:443\r\n\r\n")))
++	if err != nil {
++		t.Fatal(err)
++	}
++	w := httptest.NewRecorder()
++	wolfcowGuestHandler(wolfcowPolicy{TCP: []wolfcowDestination{{Host: "example.org", Port: 443}}}).ServeHTTP(w, r)
++	if w.Code != http.StatusForbidden {
++		t.Fatalf("status = %d", w.Code)
++	}
++}
++
++type wolfcowHijackWriter struct {
++	conn   net.Conn
++	header http.Header
++}
++
++func (w *wolfcowHijackWriter) Header() http.Header            { return w.header }
++func (w *wolfcowHijackWriter) Write(data []byte) (int, error) { return w.conn.Write(data) }
++func (w *wolfcowHijackWriter) WriteHeader(int)                {}
++func (w *wolfcowHijackWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
++	return w.conn, bufio.NewReadWriter(bufio.NewReader(w.conn), bufio.NewWriter(w.conn)), nil
++}
++
++func TestWolfcowConnectPinsResolvedIPAndTunnels(t *testing.T) {
++	guest, gateway := net.Pipe()
++	defer guest.Close()
++	outbound, remote := net.Pipe()
++	defer remote.Close()
++	request, err := http.ReadRequest(bufio.NewReader(strings.NewReader("CONNECT example.org:443 HTTP/1.1\r\nHost: example.org:443\r\n\r\n")))
++	if err != nil {
++		t.Fatal(err)
++	}
++	lookup := func(_ context.Context, network, host string) ([]netip.Addr, error) {
++		if network != "ip4" || host != "example.org." {
++			return nil, fmt.Errorf("lookup %s %s", network, host)
++		}
++		return []netip.Addr{netip.MustParseAddr("8.8.8.8")}, nil
++	}
++	dial := func(_ context.Context, network, address string) (net.Conn, error) {
++		if network != "tcp" || address != "8.8.8.8:443" {
++			return nil, fmt.Errorf("dial %s %s", network, address)
++		}
++		return outbound, nil
++	}
++	handler := wolfcowGuestHandlerWithNetwork(wolfcowPolicy{TCP: []wolfcowDestination{{Host: "example.org", Port: 443}}}, lookup, dial)
++	done := make(chan struct{})
++	go func() {
++		handler.ServeHTTP(&wolfcowHijackWriter{conn: gateway, header: make(http.Header)}, request)
++		close(done)
++	}()
++	_ = guest.SetDeadline(time.Now().Add(2 * time.Second))
++	_ = remote.SetDeadline(time.Now().Add(2 * time.Second))
++	reader := bufio.NewReader(guest)
++	status, err := reader.ReadString('\n')
++	if err != nil || !strings.Contains(status, "200 Connection Established") {
++		t.Fatalf("status %q: %v", status, err)
++	}
++	if _, err := reader.ReadString('\n'); err != nil {
++		t.Fatal(err)
++	}
++	remoteDone := make(chan error, 1)
++	go func() {
++		payload := make([]byte, 4)
++		_, err := io.ReadFull(remote, payload)
++		if err == nil && string(payload) != "ping" {
++			err = fmt.Errorf("payload %q", payload)
++		}
++		if err == nil {
++			_, err = remote.Write([]byte("pong"))
++		}
++		remoteDone <- err
++		_ = remote.Close()
++	}()
++	if _, err := guest.Write([]byte("ping")); err != nil {
++		t.Fatal(err)
++	}
++	payload := make([]byte, 4)
++	if _, err := io.ReadFull(reader, payload); err != nil || string(payload) != "pong" {
++		t.Fatalf("response %q: %v", payload, err)
++	}
++	if err := <-remoteDone; err != nil {
++		t.Fatal(err)
++	}
++	_ = guest.Close()
++	select {
++	case <-done:
++	case <-time.After(2 * time.Second):
++		t.Fatal("proxy did not stop after tunnel closed")
++	}
++}
++
++func TestWolfcowConnectUnavailableReason(t *testing.T) {
++	for _, tc := range []struct {
++		name   string
++		lookup func(context.Context, string, string) ([]netip.Addr, error)
++		dial   func(context.Context, string, string) (net.Conn, error)
++		want   string
++	}{
++		{
++			name: "dns",
++			lookup: func(context.Context, string, string) ([]netip.Addr, error) {
++				return nil, fmt.Errorf("lookup failed")
++			},
++			dial: func(context.Context, string, string) (net.Conn, error) {
++				t.Fatal("dial called after lookup failure")
++				return nil, nil
++			},
++			want: "dns",
++		},
++		{
++			name: "no-ipv4",
++			lookup: func(context.Context, string, string) ([]netip.Addr, error) {
++				return nil, nil
++			},
++			want: "no-ipv4",
++		},
++		{
++			name: "blocked-address",
++			lookup: func(context.Context, string, string) ([]netip.Addr, error) {
++				return []netip.Addr{netip.MustParseAddr("127.0.0.1")}, nil
++			},
++			want: "blocked-address",
++		},
++		{
++			name: "dial",
++			lookup: func(context.Context, string, string) ([]netip.Addr, error) {
++				return []netip.Addr{netip.MustParseAddr("8.8.8.8")}, nil
++			},
++			dial: func(context.Context, string, string) (net.Conn, error) {
++				return nil, fmt.Errorf("dial failed")
++			},
++			want: "dial",
++		},
++	} {
++		t.Run(tc.name, func(t *testing.T) {
++			r, err := http.ReadRequest(bufio.NewReader(strings.NewReader("CONNECT example.org:443 HTTP/1.1\r\nHost: example.org:443\r\n\r\n")))
++			if err != nil {
++				t.Fatal(err)
++			}
++			w := httptest.NewRecorder()
++			wolfcowGuestHandlerWithNetwork(wolfcowPolicy{TCP: []wolfcowDestination{{Host: "example.org", Port: 443}}}, tc.lookup, tc.dial).ServeHTTP(w, r)
++			if w.Code != http.StatusBadGateway || w.Header().Get("X-Wolfcow-Connect-Error") != tc.want {
++				t.Fatalf("status=%d reason=%q", w.Code, w.Header().Get("X-Wolfcow-Connect-Error"))
++			}
++		})
++	}
++}
++
++func TestWolfcowConnectReportsCanceledDNS(t *testing.T) {
++	r, err := http.ReadRequest(bufio.NewReader(strings.NewReader("CONNECT example.org:443 HTTP/1.1\r\nHost: example.org:443\r\n\r\n")))
++	if err != nil {
++		t.Fatal(err)
++	}
++	lookup := func(context.Context, string, string) ([]netip.Addr, error) {
++		return nil, context.Canceled
++	}
++	w := httptest.NewRecorder()
++	wolfcowGuestHandlerWithNetwork(wolfcowPolicy{TCP: []wolfcowDestination{{Host: "example.org", Port: 443}}}, lookup, nil).ServeHTTP(w, r)
++	if w.Code != http.StatusBadGateway || w.Header().Get("X-Wolfcow-DNS-Detail") != "canceled" {
++		t.Fatalf("status=%d detail=%q", w.Code, w.Header().Get("X-Wolfcow-DNS-Detail"))
++	}
++}

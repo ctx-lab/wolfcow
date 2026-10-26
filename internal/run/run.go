@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/ctx-lab/wolfcow/internal/guest"
+	"github.com/ctx-lab/wolfcow/internal/network"
 	"github.com/ctx-lab/wolfcow/internal/protocol"
 	"github.com/ctx-lab/wolfcow/internal/vmm"
 	"github.com/ctx-lab/wolfcow/internal/workspace"
@@ -27,6 +28,7 @@ type Spec struct {
 	MemoryMiB   uint32
 	ExecTimeout time.Duration
 	OutputMax   int64
+	Network     network.Policy
 }
 
 type Result struct {
@@ -79,12 +81,22 @@ func (r Runner) Run(ctx context.Context, spec Spec, stdout, stderr io.Writer) (r
 	if err := workspace.WriteSnapshot(filepath.Join(assets.Rootfs, "work"), before); err != nil {
 		return result, fmt.Errorf("stage workspace: %w", err)
 	}
+	netSocket := ""
+	if spec.Network.Enabled() {
+		netSocket = filepath.Join(filepath.Dir(assets.Socket), "net.sock")
+		var proxy *network.Proxy
+		proxy, err = network.StartGVProxy(ctx, bundle, netSocket, spec.Network)
+		if err != nil {
+			return result, fmt.Errorf("start network proxy: %w", err)
+		}
+		defer func() { err = errors.Join(err, proxy.Stop()) }()
+	}
 	backend := r.Backend
 	if backend == nil {
 		backend = vmm.Libkrun{Bundle: bundle}
 	}
 	bootCtx, cancelBoot := context.WithTimeout(ctx, 15*time.Second)
-	machine, err := backend.Boot(bootCtx, vmm.BootSpec{Rootfs: assets.Rootfs, Socket: assets.Socket, CPUs: spec.CPUs, MemoryMiB: spec.MemoryMiB})
+	machine, err := backend.Boot(bootCtx, vmm.BootSpec{Rootfs: assets.Rootfs, Socket: assets.Socket, NetSocket: netSocket, CPUs: spec.CPUs, MemoryMiB: spec.MemoryMiB})
 	cancelBoot()
 	if err != nil {
 		return result, fmt.Errorf("boot guest: %w", err)
@@ -116,6 +128,9 @@ func defaults(spec Spec) Spec {
 }
 
 func validate(spec Spec) error {
+	if err := spec.Network.Validate(); err != nil {
+		return err
+	}
 	if spec.CPUs > 8 || spec.MemoryMiB < 128 || spec.MemoryMiB > 8192 {
 		return fmt.Errorf("VM resource limit out of range")
 	}
@@ -166,7 +181,11 @@ func runOnMachine(ctx context.Context, machine vmm.Machine, before workspace.Sna
 		return result, fmt.Errorf("guest ready: %w", err)
 	}
 	result.Kernel = ready.Kernel
-	execResult, execErr := guest.Exec(ctx, conn, ready, guest.ExecSpec{Argv: spec.Argv, Dir: "/work", Timeout: spec.ExecTimeout, OutputMax: spec.OutputMax}, stdout, stderr)
+	env := []string(nil)
+	if spec.Network.Enabled() {
+		env = []string{"HTTPS_PROXY=http://192.168.127.1:80", "https_proxy=http://192.168.127.1:80", "HTTP_PROXY=http://192.168.127.1:80", "http_proxy=http://192.168.127.1:80"}
+	}
+	execResult, execErr := guest.Exec(ctx, conn, ready, guest.ExecSpec{Argv: spec.Argv, Dir: "/work", Env: env, Timeout: spec.ExecTimeout, OutputMax: spec.OutputMax}, stdout, stderr)
 	_ = conn.Close()
 	result.ExitCode, result.Signal, result.Status = execResult.Code, execResult.Signal, execResult.Status
 	if ctx.Err() != nil {

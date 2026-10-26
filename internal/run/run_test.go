@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ctx-lab/wolfcow/internal/network"
 	"github.com/ctx-lab/wolfcow/internal/protocol"
 	"github.com/ctx-lab/wolfcow/internal/vmm"
 	"github.com/ctx-lab/wolfcow/internal/workspace"
@@ -119,5 +120,12 @@ func TestRunOnMachineReturnsBinaryChanges(t *testing.T) {
 func TestInvalidLimitsRejectedBeforeBoot(t *testing.T) {
 	if err := validate(Spec{CPUs: 1, MemoryMiB: 512, ExecTimeout: 6 * time.Minute, OutputMax: 1024}); err == nil {
 		t.Fatal("accepted excessive timeout")
+	}
+}
+
+func TestInvalidNetworkPolicyRejectedBeforeBoot(t *testing.T) {
+	spec := defaults(Spec{Network: network.Policy{TCP: []network.Destination{{Host: "127.0.0.1", Port: 443}}}})
+	if err := validate(spec); err == nil {
+		t.Fatal("accepted raw-IP network destination")
 	}
 }

@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 
+	"github.com/ctx-lab/wolfcow/internal/network"
 	"github.com/ctx-lab/wolfcow/internal/spike"
 	"github.com/ctx-lab/wolfcow/internal/vmm"
 
@@ -71,18 +72,36 @@ func newCommand(launch func(string) error) *cobra.Command {
 			return spike.RunExec(cmd.Context(), args, cmd.OutOrStdout(), cmd.ErrOrStderr())
 		},
 	})
-	spikeCmd.AddCommand(&cobra.Command{
+	var allowTCP []string
+	workspaceProbe := &cobra.Command{
 		Use: "workspace SOURCE -- COMMAND [ARG...]", Short: "Exercise copied workspace and guest file protocol",
 		Args: cobra.MinimumNArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return spike.RunWorkspace(cmd.Context(), args[0], args[1:], cmd.OutOrStdout(), cmd.ErrOrStderr())
+			policy := network.Policy{}
+			for _, authority := range allowTCP {
+				destination, err := network.ParseDestination(authority)
+				if err != nil {
+					return err
+				}
+				policy.TCP = append(policy.TCP, destination)
+			}
+			return spike.RunWorkspace(cmd.Context(), args[0], args[1:], policy, cmd.OutOrStdout(), cmd.ErrOrStderr())
 		},
-	})
+	}
+	workspaceProbe.Flags().StringArrayVar(&allowTCP, "allow-tcp", nil, "Allow guest TCP through the host proxy to HOST:PORT (development probe)")
+	spikeCmd.AddCommand(workspaceProbe)
 	spikeCmd.AddCommand(&cobra.Command{
 		Use: "conformance SOURCE", Short: "Check the Stage B guest control contract",
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return spike.RunConformance(cmd.Context(), args[0], cmd.OutOrStdout())
+		},
+	})
+	spikeCmd.AddCommand(&cobra.Command{
+		Use: "net", Short: "Probe the temporary virtio-net/gvproxy link",
+		Args: cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return spike.RunNet(cmd.Context(), cmd.OutOrStdout(), cmd.ErrOrStderr())
 		},
 	})
 	root.AddCommand(spikeCmd)

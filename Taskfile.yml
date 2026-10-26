@@ -55,6 +55,18 @@ tasks:
       - task: build
       - ./bin/wolfcow spike exec -- /bin/sh -c 'test -x /bin/busybox && test -r /etc/ssl/cert.pem && /bin/busybox echo "image smoke passed"'
 
+  net:link:
+    desc: Probe the virtio-net link and deny direct guest egress
+    cmds:
+      - task: build
+      - ./bin/wolfcow spike net
+
+  net:external:
+    desc: Probe one explicitly allowed external TCP endpoint on physical macOS
+    cmds:
+      - task: build
+      - sh hack/check-net-external.sh
+
   stage:b:
     desc: Run Stage B smoke and protocol conformance checks on macOS libkrun
     cmds:

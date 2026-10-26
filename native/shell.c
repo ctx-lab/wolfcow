@@ -43,14 +43,15 @@ int main(int argc, char **argv) {
         return 0;
     }
 #endif
-    int agent_mode = argc == 6 && strcmp(argv[1], "--agent") == 0;
+    int net_mode = argc == 7 && strcmp(argv[1], "--agent-net") == 0;
+    int agent_mode = (argc == 6 && strcmp(argv[1], "--agent") == 0) || net_mode;
     if (argc != 2 && !agent_mode) {
-        fprintf(stderr, "usage: wolfcow-krun ROOTFS | --agent ROOTFS SOCKET VCPUS MEMORY_MIB\n");
+        fprintf(stderr, "usage: wolfcow-krun ROOTFS | --agent ROOTFS SOCKET VCPUS MEMORY_MIB | --agent-net ROOTFS SOCKET NETSOCKET VCPUS MEMORY_MIB\n");
         return 1;
     }
     unsigned long cpus = 1, memory_mib = 512;
-    if (agent_mode && (!parse_limit(argv[4], 1, 8, &cpus) ||
-                       !parse_limit(argv[5], 128, 8192, &memory_mib))) {
+    if (agent_mode && (!parse_limit(argv[net_mode ? 5 : 4], 1, 8, &cpus) ||
+                       !parse_limit(argv[net_mode ? 6 : 5], 128, 8192, &memory_mib))) {
         fprintf(stderr, "wolfcow: invalid VM resource bounds\n");
         return 1;
     }
@@ -86,6 +87,7 @@ int main(int argc, char **argv) {
     }
     int id = krun_create_ctx();
     if (!check(id, "create VM")) return 1;
+    uint8_t net_mac[6] = {0x5a, 0x94, 0xef, 0xe4, 0x0c, 0xee};
     const char *args[] = {NULL};
     const char *env[] = {"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
                          "HOME=/root", "TERM=vt100", NULL};
@@ -93,6 +95,8 @@ int main(int argc, char **argv) {
         !check(krun_disable_implicit_vsock(id), "disable TSI/vsock") ||
         (agent_mode && (!check(krun_add_vsock(id, 0), "add vsock") ||
                         !check(krun_add_vsock_port2(id, 15000, argv[3], true), "map control port"))) ||
+        (net_mode && !check(krun_add_net_unixgram(id, argv[4], -1, net_mac,
+                        COMPAT_NET_FEATURES, NET_FLAG_VFKIT | NET_FLAG_DHCP_CLIENT), "add virtio-net")) ||
         !check(krun_set_root(id, agent_mode ? argv[2] : argv[1]), "configure rootfs") ||
         !check(krun_set_workdir(id, "/"), "configure working directory") ||
         !check(krun_set_exec(id, agent_mode ? "/wolfcow-guest" : "/bin/sh", args, env), "configure guest entrypoint")) {

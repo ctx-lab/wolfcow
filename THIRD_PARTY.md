@@ -8,6 +8,7 @@ The macOS runtime bundles these upstream components:
 | libkrunfw library | 5.6.2 | LGPL-2.1-only | https://github.com/libkrun/libkrunfw/tree/v5.6.2 |
 | Kernel bundled by libkrunfw | 6.12.109 | GPL-2.0-only | https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.12.109.tar.xz |
 | Alpine minirootfs (aarch64) | 3.22.2 | Multiple component licenses | https://dl-cdn.alpinelinux.org/alpine/v3.22/releases/aarch64/ |
+| gvproxy (Wolfcow deny-egress patch) | 0.8.9 | Apache-2.0 | https://github.com/containers/gvisor-tap-vsock/tree/v0.8.9 |
 
 libkrunfw's tagged source contains the kernel patches, configuration, and build
 instructions used for its kernel bundle. Alpine package sources are available
@@ -20,6 +21,12 @@ at https://ziglang.org/download/0.14.1/zig-0.14.1.tar.xz.
 `hack/runtime.env` pins downloaded build inputs by SHA-256. Cargo.lock in the
 pinned libkrun source pins its Rust dependencies. Zig is a build tool and is
 not included as an executable in the runtime archive.
+The gvproxy source archive and its Go build toolchain are pinned by SHA-256 in
+`hack/runtime.env`. `hack/patches/gvproxy-deny-egress.patch` disables direct
+host TCP/UDP forwarding, upstream DNS, and the guest-facing mutable forwarding
+API. It adds a per-run, exact-hostname TCP CONNECT policy. The patched binary
+is built from vendored dependencies. Normal shell and offline one-shot runs do
+not start it; network-enabled development runs do.
 
 The exact Alpine package list and filesystem inventory are recorded in
 [`images/alpine-minirootfs-3.22.2-aarch64.json`](images/alpine-minirootfs-3.22.2-aarch64.json).

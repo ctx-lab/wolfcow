@@ -6,6 +6,7 @@ import (
 	"io"
 
 	"github.com/ctx-lab/wolfcow/internal/guest"
+	"github.com/ctx-lab/wolfcow/internal/network"
 	"github.com/ctx-lab/wolfcow/internal/protocol"
 	"github.com/ctx-lab/wolfcow/internal/run"
 	"github.com/ctx-lab/wolfcow/internal/vmm"
@@ -13,10 +14,10 @@ import (
 )
 
 // RunWorkspace preserves the Stage B development command on the run engine.
-func RunWorkspace(ctx context.Context, source string, argv []string, stdout, stderr io.Writer) error {
+func RunWorkspace(ctx context.Context, source string, argv []string, policy network.Policy, stdout, stderr io.Writer) error {
 	marker := []byte("written through the guest control protocol\n")
 	result, err := (run.Runner{}).Run(ctx, run.Spec{
-		Workspace: source, Argv: argv,
+		Workspace: source, Argv: argv, Network: policy,
 		Writes: workspace.Snapshot{"host-note.txt": marker},
 	}, stdout, stderr)
 	if err != nil {
