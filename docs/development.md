@@ -13,6 +13,7 @@ task package         # self-contained macOS archive in dist/
 ./bin/wolfcow shell     # boot a disposable shell
 task stage:a         # experimental guest ready + exec over vsock
 task stage:b         # copied workspace smoke and guest protocol conformance
+task image:smoke     # boot the pinned image and check shell and CA bundle
 ```
 
 The default rootfs is recreated for every run and removed on exit. An optional
@@ -20,6 +21,13 @@ The default rootfs is recreated for every run and removed on exit. An optional
 ARM64 Linux rootfs before boot. Guest changes are discarded. Never use a host
 project or home directory as a source. The CLI uses Cobra for command parsing;
 the optional rootfs source can also be set with `WOLFCOW_ROOTFS`.
+
+The default Alpine minirootfs is pinned by archive digest in
+`hack/runtime.env`. `task build` regenerates its package and file inventory,
+compares it with `images/alpine-minirootfs-3.22.2-aarch64.json`, and includes
+the manifest in the runtime archive. `task image:smoke` then checks that the
+image boots with BusyBox and the CA bundle. Python, Bash, and Git are deferred
+until the coding-agent fixture needs them.
 
 The Go module is `github.com/ctx-lab/wolfcow`. `internal/vmm` owns VM lifecycle
 and image staging; `internal/protocol` defines the bounded guest stream.

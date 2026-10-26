@@ -9,7 +9,7 @@ if [ "$(uname -s)/$(uname -m)" != Darwin/arm64 ]; then
   echo 'wolfcow v0.0.1 runtime builds require Apple Silicon macOS' >&2
   exit 1
 fi
-for tool in go cargo rustc clang codesign install_name_tool curl shasum tar make; do
+for tool in go cargo rustc clang codesign install_name_tool curl shasum tar make cmp; do
   command -v "$tool" >/dev/null || { echo "Missing build tool: $tool" >&2; exit 1; }
 done
 
@@ -61,6 +61,14 @@ CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -trimpath -ldflags '-s -w' \
 cp .cache/build/libkrun/target/release/libkrun.dylib bin/runtime/libkrun.1.dylib
 cp .cache/build/libkrunfw/libkrunfw/libkrunfw.5.dylib bin/runtime/
 cp .cache/downloads/rootfs.tar.gz bin/runtime/
+GOCACHE="$ROOT/.cache/go-build" go build -o .cache/tools/image-manifest ./hack/image-manifest
+.cache/tools/image-manifest -image bin/runtime/rootfs.tar.gz \
+  -source "$IMAGE_URL" -version "$IMAGE_VERSION" > .cache/build/rootfs.manifest.json
+if ! cmp -s images/alpine-minirootfs-3.22.2-aarch64.json .cache/build/rootfs.manifest.json; then
+  echo 'Linux image inventory differs from the checked-in manifest' >&2
+  exit 1
+fi
+cp .cache/build/rootfs.manifest.json bin/runtime/rootfs.manifest.json
 install_name_tool -id @rpath/libkrun.1.dylib bin/runtime/libkrun.1.dylib
 install_name_tool -id @rpath/libkrunfw.5.dylib bin/runtime/libkrunfw.5.dylib
 clang -Wall -Wextra -Werror -O2 -I.cache/build/libkrun/include \

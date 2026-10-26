@@ -49,6 +49,12 @@ tasks:
       - task: build
       - ./bin/wolfcow spike exec -- /bin/uname -r
 
+  image:smoke:
+    desc: Boot the pinned minimal image and check its shell and CA bundle
+    cmds:
+      - task: build
+      - ./bin/wolfcow spike exec -- /bin/sh -c 'test -x /bin/busybox && test -r /etc/ssl/cert.pem && /bin/busybox echo "image smoke passed"'
+
   stage:b:
     desc: Run Stage B smoke and protocol conformance checks on macOS libkrun
     cmds:

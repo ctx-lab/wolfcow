@@ -21,6 +21,16 @@ at https://ziglang.org/download/0.14.1/zig-0.14.1.tar.xz.
 pinned libkrun source pins its Rust dependencies. Zig is a build tool and is
 not included as an executable in the runtime archive.
 
+The exact Alpine package list and filesystem inventory are recorded in
+[`images/alpine-minirootfs-3.22.2-aarch64.json`](images/alpine-minirootfs-3.22.2-aarch64.json).
+The build regenerates this manifest from the pinned archive, checks it against
+the committed copy, and bundles it as `runtime/rootfs.manifest.json`. The
+archive is 3,981,043 bytes and has SHA-256
+`6bf491907b705caa5fc65773fbbc1d0954530b6c455d4446f670a4c1fdcea489`.
+The static `wolfcow-guest` executable is built separately and added to the
+disposable rootfs before each boot. This image includes BusyBox and CA
+certificates; it does not yet include Python, Bash, or Git.
+
 Local packages are development builds, ad hoc signed and not notarized.
 A published binary distribution must also provide the corresponding source
 and license material required by its bundled components.

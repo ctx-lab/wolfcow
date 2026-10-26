@@ -1,0 +1,3196 @@
+{
+  "schema": 1,
+  "source": "https://dl-cdn.alpinelinux.org/alpine/v3.22/releases/aarch64/alpine-minirootfs-3.22.2-aarch64.tar.gz",
+  "version": "3.22.2",
+  "architecture": "aarch64",
+  "archive_sha256": "6bf491907b705caa5fc65773fbbc1d0954530b6c455d4446f670a4c1fdcea489",
+  "archive_bytes": 3981043,
+  "content_bytes": 8507120,
+  "packages": [
+    {
+      "name": "alpine-baselayout",
+      "version": "3.7.0-r0",
+      "license": "GPL-2.0-only"
+    },
+    {
+      "name": "alpine-baselayout-data",
+      "version": "3.7.0-r0",
+      "license": "GPL-2.0-only"
+    },
+    {
+      "name": "alpine-keys",
+      "version": "2.5-r0",
+      "license": "MIT"
+    },
+    {
+      "name": "alpine-release",
+      "version": "3.22.2-r0",
+      "license": "MIT"
+    },
+    {
+      "name": "apk-tools",
+      "version": "2.14.9-r3",
+      "license": "GPL-2.0-only"
+    },
+    {
+      "name": "busybox",
+      "version": "1.37.0-r19",
+      "license": "GPL-2.0-only"
+    },
+    {
+      "name": "busybox-binsh",
+      "version": "1.37.0-r19",
+      "license": "GPL-2.0-only"
+    },
+    {
+      "name": "ca-certificates-bundle",
+      "version": "20250911-r0",
+      "license": "MPL-2.0 AND MIT"
+    },
+    {
+      "name": "libapk2",
+      "version": "2.14.9-r3",
+      "license": "GPL-2.0-only"
+    },
+    {
+      "name": "libcrypto3",
+      "version": "3.5.4-r0",
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "libssl3",
+      "version": "3.5.4-r0",
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "musl",
+      "version": "1.2.5-r10",
+      "license": "MIT"
+    },
+    {
+      "name": "musl-utils",
+      "version": "1.2.5-r10",
+      "license": "MIT AND BSD-2-Clause AND GPL-2.0-or-later"
+    },
+    {
+      "name": "scanelf",
+      "version": "1.3.8-r1",
+      "license": "GPL-2.0-only"
+    },
+    {
+      "name": "ssl_client",
+      "version": "1.37.0-r19",
+      "license": "GPL-2.0-only"
+    },
+    {
+      "name": "zlib",
+      "version": "1.3.1-r2",
+      "license": "Zlib"
+    }
+  ],
+  "entries": [
+    {
+      "path": "bin",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "bin/arch",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/ash",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/base64",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/bbconfig",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/busybox",
+      "type": "file",
+      "mode": "0755",
+      "size": 919304,
+      "sha256": "6c669f2d227399fab6c14a9604abd63ef0b95afa67e333d7810a5fd2581a4662"
+    },
+    {
+      "path": "bin/cat",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/chattr",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/chgrp",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/chmod",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/chown",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/cp",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/date",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/dd",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/df",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/dmesg",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/dnsdomainname",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/dumpkmap",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/echo",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/egrep",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/false",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/fatattr",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/fdflush",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/fgrep",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/fsync",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/getopt",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/grep",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/gunzip",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/gzip",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/hostname",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/ionice",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/iostat",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/ipcalc",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/kbd_mode",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/kill",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/link",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/linux32",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/linux64",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/ln",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/login",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/ls",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/lsattr",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/lzop",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/makemime",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/mkdir",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/mknod",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/mktemp",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/more",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/mount",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/mountpoint",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/mpstat",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/mv",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/netstat",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/nice",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/pidof",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/ping",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/ping6",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/pipe_progress",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/printenv",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/ps",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/pwd",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/reformime",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/rev",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/rm",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/rmdir",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/run-parts",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/sed",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/setpriv",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/setserial",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/sh",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/sleep",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/stat",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/stty",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/su",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/sync",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/tar",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/touch",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/true",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/umount",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/uname",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/usleep",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/watch",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "bin/zcat",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "dev",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "etc",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "etc/alpine-release",
+      "type": "file",
+      "mode": "0644",
+      "size": 7,
+      "sha256": "88273e458ab7d4f9835d59b21bc8896cc6ce4ea3d5f3abd3dd550463d5c9243b"
+    },
+    {
+      "path": "etc/apk",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "etc/apk/arch",
+      "type": "file",
+      "mode": "0644",
+      "size": 8,
+      "sha256": "5121ae59314a84da7b4d9587374398f1afa2000b243b3e54f491adefaac54f92"
+    },
+    {
+      "path": "etc/apk/keys",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "etc/apk/keys/alpine-devel@lists.alpinelinux.org-524d27bb.rsa.pub",
+      "type": "file",
+      "mode": "0644",
+      "size": 451,
+      "sha256": "1bb2a846c0ea4ca9d0e7862f970863857fc33c32f5506098c636a62a726a847b"
+    },
+    {
+      "path": "etc/apk/keys/alpine-devel@lists.alpinelinux.org-58199dcc.rsa.pub",
+      "type": "file",
+      "mode": "0644",
+      "size": 451,
+      "sha256": "73867d92083f2f8ab899a26ccda7ef63dfaa0032a938620eda605558958a8041"
+    },
+    {
+      "path": "etc/apk/keys/alpine-devel@lists.alpinelinux.org-616a9724.rsa.pub",
+      "type": "file",
+      "mode": "0644",
+      "size": 800,
+      "sha256": "10877cce0a935e46ad88cb79e174a2491680508eccda08e92bf04fb9bf37fbc1"
+    },
+    {
+      "path": "etc/apk/keys/alpine-devel@lists.alpinelinux.org-616adfeb.rsa.pub",
+      "type": "file",
+      "mode": "0644",
+      "size": 800,
+      "sha256": "ebe717d228555aa58133c202314a451f81e71f174781fd7ff8d8970d6cfa60da"
+    },
+    {
+      "path": "etc/apk/keys/alpine-devel@lists.alpinelinux.org-616ae350.rsa.pub",
+      "type": "file",
+      "mode": "0644",
+      "size": 800,
+      "sha256": "d11f6b21c61b4274e182eb888883a8ba8acdbf820dcc7a6d82a7d9fc2fd2836d"
+    },
+    {
+      "path": "etc/apk/protected_paths.d",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "etc/apk/repositories",
+      "type": "file",
+      "mode": "0644",
+      "size": 103,
+      "sha256": "f9ae9d3ed56e354f96b5e8ead266c89b6c805a97484040e8e780e32ca645994a"
+    },
+    {
+      "path": "etc/apk/world",
+      "type": "file",
+      "mode": "0644",
+      "size": 74,
+      "sha256": "bd4a5bcb2151166a647b1620db4b739423b49bff3bc9c656177cb982caf7e356"
+    },
+    {
+      "path": "etc/busybox-paths.d",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "etc/busybox-paths.d/busybox",
+      "type": "file",
+      "mode": "0644",
+      "size": 3989,
+      "sha256": "e12e0822f5c6426b62f07799a0fc20394241535c5bc2cc8f10c8a25088b8defa"
+    },
+    {
+      "path": "etc/crontabs",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "etc/crontabs/root",
+      "type": "file",
+      "mode": "0600",
+      "size": 283,
+      "sha256": "575d810a9fae5f2f0671c9b2c0ce973e46c7207fbe5cb8d1b0d1836a6a0470e3"
+    },
+    {
+      "path": "etc/fstab",
+      "type": "file",
+      "mode": "0644",
+      "size": 89,
+      "sha256": "a3efca2e8d62785c87517283092b4c800d88612b6f3f06b80a4c2f39d8e68841"
+    },
+    {
+      "path": "etc/group",
+      "type": "file",
+      "mode": "0644",
+      "size": 510,
+      "sha256": "6fb6ab5a5526e6f4896b70c7e3c350fd475158a1f0d7b5fc0f3f9bd57f1c3be8"
+    },
+    {
+      "path": "etc/hostname",
+      "type": "file",
+      "mode": "0644",
+      "size": 10,
+      "sha256": "d906aecb61d076a967d9ffe8821c7b04b063f72df9d9e35b33ef36b1c0d98f16"
+    },
+    {
+      "path": "etc/hosts",
+      "type": "file",
+      "mode": "0644",
+      "size": 79,
+      "sha256": "e3998dbe02b51dada33de87ae43d18a93ab6915b9e34f5a751bf2b9b25a55492"
+    },
+    {
+      "path": "etc/inittab",
+      "type": "file",
+      "mode": "0644",
+      "size": 570,
+      "sha256": "7326d8ad56bf5fea63b1ca516a747ff6e6723e25ae84a93c31620b03de6c001d"
+    },
+    {
+      "path": "etc/issue",
+      "type": "file",
+      "mode": "0644",
+      "size": 51,
+      "sha256": "9b89537422a64a9a9407d3cafdf58c802375849629b8f43e64f1cfd7f07c782a"
+    },
+    {
+      "path": "etc/logrotate.d",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "etc/logrotate.d/acpid",
+      "type": "file",
+      "mode": "0644",
+      "size": 140,
+      "sha256": "d608a3b7715886b5735def0cc50a6359fd364fac2e0e0a459c588c04be471031"
+    },
+    {
+      "path": "etc/modprobe.d",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "etc/modprobe.d/aliases.conf",
+      "type": "file",
+      "mode": "0644",
+      "size": 1545,
+      "sha256": "3ebaba946f213670170c7d69949f690a3854553bd0b1560f1d980cba4c83a942"
+    },
+    {
+      "path": "etc/modprobe.d/blacklist.conf",
+      "type": "file",
+      "mode": "0644",
+      "size": 2136,
+      "sha256": "5cd46031fc7dc7186e67c97fd34780597de4ebff51dbe41eba27220fe5e0d866"
+    },
+    {
+      "path": "etc/modprobe.d/i386.conf",
+      "type": "file",
+      "mode": "0644",
+      "size": 122,
+      "sha256": "6c46c4cbfb8b7594f19eb94801a350fa2221ae9ac5239a8819d15555caa76ae8"
+    },
+    {
+      "path": "etc/modules",
+      "type": "file",
+      "mode": "0644",
+      "size": 15,
+      "sha256": "2c881de75a5409c35d2433a24f180b8b02ba478ef2c1c60ea3434a35bcbc335d"
+    },
+    {
+      "path": "etc/modules-load.d",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "etc/motd",
+      "type": "file",
+      "mode": "0644",
+      "size": 284,
+      "sha256": "ff044e9be5daa2eee2d3d10a4da72e5477e4c24c16f1792de2c91dae844c0e30"
+    },
+    {
+      "path": "etc/mtab",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "../proc/mounts"
+    },
+    {
+      "path": "etc/network",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "etc/network/if-down.d",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "etc/network/if-post-down.d",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "etc/network/if-post-up.d",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "etc/network/if-pre-down.d",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "etc/network/if-pre-up.d",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "etc/network/if-up.d",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "etc/network/if-up.d/dad",
+      "type": "file",
+      "mode": "0775",
+      "size": 285,
+      "sha256": "2fd20d1bc67d9ee711990002b24f156635a73f56b8935b2f76592938817fa4e7"
+    },
+    {
+      "path": "etc/nsswitch.conf",
+      "type": "file",
+      "mode": "0644",
+      "size": 205,
+      "sha256": "0afd94c183d30a348b45057f6bf468e121aa448a7641109addb5bb8e282f514d"
+    },
+    {
+      "path": "etc/opt",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "etc/os-release",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "../usr/lib/os-release"
+    },
+    {
+      "path": "etc/passwd",
+      "type": "file",
+      "mode": "0644",
+      "size": 702,
+      "sha256": "31a94f06f17bc3b9085fccab1d0fa6ee9e79c4a1e4d91f617fa5de95863be015"
+    },
+    {
+      "path": "etc/periodic",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "etc/periodic/15min",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "etc/periodic/daily",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "etc/periodic/hourly",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "etc/periodic/monthly",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "etc/periodic/weekly",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "etc/profile",
+      "type": "file",
+      "mode": "0644",
+      "size": 547,
+      "sha256": "87e8643d3ce156de0c09370d4d39446f30bd00d264bea248abc191c4d7b9df3e"
+    },
+    {
+      "path": "etc/profile.d",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "etc/profile.d/20locale.sh",
+      "type": "file",
+      "mode": "0644",
+      "size": 97,
+      "sha256": "284a6ef56ab97a13a777c6b01ae14f2cc3d2b7a29c19e750e622e70cc3c73186"
+    },
+    {
+      "path": "etc/profile.d/README",
+      "type": "file",
+      "mode": "0644",
+      "size": 249,
+      "sha256": "b73284f27fe2da9ae1902b1fe9596c3ffc61a154e2805a034184f0468f8b09b0"
+    },
+    {
+      "path": "etc/profile.d/color_prompt.sh.disabled",
+      "type": "file",
+      "mode": "0644",
+      "size": 447,
+      "sha256": "ba24425c6864a5d17fa0fdaf914c4d21419e47c4d62080c33830af059fe46617"
+    },
+    {
+      "path": "etc/protocols",
+      "type": "file",
+      "mode": "0644",
+      "size": 3144,
+      "sha256": "4959498abbadaa1e50894a266f8d0d94500101cfe5b5f09dcad82e9d5bdfab46"
+    },
+    {
+      "path": "etc/secfixes.d",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "etc/secfixes.d/alpine",
+      "type": "file",
+      "mode": "0644",
+      "size": 97,
+      "sha256": "808a19d200c575a9bd9898b113ca4538bb142878dd6a8e5f14804ba9ae3f5c38"
+    },
+    {
+      "path": "etc/securetty",
+      "type": "file",
+      "mode": "0644",
+      "size": 156,
+      "sha256": "713fcea5109728883b9147e822429133fcc8b5e253afd3c2a197b10cd0bc3b4d"
+    },
+    {
+      "path": "etc/services",
+      "type": "file",
+      "mode": "0644",
+      "size": 12813,
+      "sha256": "f6183055fd949f9c53d49ee620f85d0150123ea691d25ed1bba0c641b4ee2f48"
+    },
+    {
+      "path": "etc/shadow",
+      "type": "file",
+      "mode": "0640",
+      "size": 260,
+      "sha256": "d5992a27f05f380fc5faeb82a3359e2f230fd1d6ea6517b45892b771a2194ddb"
+    },
+    {
+      "path": "etc/shells",
+      "type": "file",
+      "mode": "0644",
+      "size": 38,
+      "sha256": "24be6ceb236610df45684c83b06c918ae45635be55f69975e43676b7595bbc5f"
+    },
+    {
+      "path": "etc/ssl",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "etc/ssl/cert.pem",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "certs/ca-certificates.crt"
+    },
+    {
+      "path": "etc/ssl/certs",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "etc/ssl/certs/ca-certificates.crt",
+      "type": "file",
+      "mode": "0644",
+      "size": 219404,
+      "sha256": "657ca6ba4bc43138f89de75fb63794cbfaa897e0e110b069fd1367bd66a5bb6c"
+    },
+    {
+      "path": "etc/ssl/ct_log_list.cnf",
+      "type": "file",
+      "mode": "0644",
+      "size": 412,
+      "sha256": "f1c1803d13d1d0b755b13b23c28bd4e20e07baf9f2b744c9337ba5866aa0ec3b"
+    },
+    {
+      "path": "etc/ssl/ct_log_list.cnf.dist",
+      "type": "file",
+      "mode": "0644",
+      "size": 412,
+      "sha256": "f1c1803d13d1d0b755b13b23c28bd4e20e07baf9f2b744c9337ba5866aa0ec3b"
+    },
+    {
+      "path": "etc/ssl/openssl.cnf",
+      "type": "file",
+      "mode": "0644",
+      "size": 12411,
+      "sha256": "a65a2cb9f4ee8ffdc7ef4f0ac600c0bdafb95b7b1ab457188ac610a62f5ad6b3"
+    },
+    {
+      "path": "etc/ssl/openssl.cnf.dist",
+      "type": "file",
+      "mode": "0644",
+      "size": 12411,
+      "sha256": "a65a2cb9f4ee8ffdc7ef4f0ac600c0bdafb95b7b1ab457188ac610a62f5ad6b3"
+    },
+    {
+      "path": "etc/ssl/private",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "etc/ssl1.1",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "etc/ssl1.1/cert.pem",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/etc/ssl/cert.pem"
+    },
+    {
+      "path": "etc/ssl1.1/certs",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/etc/ssl/certs"
+    },
+    {
+      "path": "etc/sysctl.conf",
+      "type": "file",
+      "mode": "0644",
+      "size": 53,
+      "sha256": "8bba47da45bc8715c69ac904a60410eabffaa7bbbef640f9c1368ab9c48493d0"
+    },
+    {
+      "path": "etc/sysctl.d",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "etc/udhcpc",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "etc/udhcpc/udhcpc.conf",
+      "type": "file",
+      "mode": "0644",
+      "size": 287,
+      "sha256": "5b372209e01cda07c87b8afa6d1ab3d7e8daf18a1f2332d744203a6dc289eb1a"
+    },
+    {
+      "path": "home",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "lib",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "lib/apk",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "lib/apk/db",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "lib/apk/db/installed",
+      "type": "file",
+      "mode": "0644",
+      "size": 15328,
+      "sha256": "896b73f822778fd03ae1f1d664acd4c5b2f1d8ce145f059bddb1571ad89e1572"
+    },
+    {
+      "path": "lib/apk/db/lock",
+      "type": "file",
+      "mode": "0600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "lib/apk/db/scripts.tar",
+      "type": "file",
+      "mode": "0644",
+      "size": 10240,
+      "sha256": "914383a1082f0b0db19818f96a24176f82edca4514f5d537faf78c9f4b0e5bde"
+    },
+    {
+      "path": "lib/apk/db/triggers",
+      "type": "file",
+      "mode": "0644",
+      "size": 95,
+      "sha256": "5303754c3426c479c5efbe31018ef30c48aeab2c5c1ba4a88a4c574383172640"
+    },
+    {
+      "path": "lib/apk/exec",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "lib/firmware",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "lib/ld-musl-aarch64.so.1",
+      "type": "file",
+      "mode": "0755",
+      "size": 723480,
+      "sha256": "da9c2d18642cf67ade0947b88b6859385c085fdbc6a022f5a8b518d7677e55df"
+    },
+    {
+      "path": "lib/libc.musl-aarch64.so.1",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "ld-musl-aarch64.so.1"
+    },
+    {
+      "path": "lib/modules-load.d",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "lib/sysctl.d",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "media",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "media/cdrom",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "media/floppy",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "media/usb",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "mnt",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "opt",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "proc",
+      "type": "directory",
+      "mode": "0555"
+    },
+    {
+      "path": "root",
+      "type": "directory",
+      "mode": "0700"
+    },
+    {
+      "path": "run",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "run/lock",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "sbin",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "sbin/acpid",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/adjtimex",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/apk",
+      "type": "file",
+      "mode": "0755",
+      "size": 69264,
+      "sha256": "50ee70318a148c4ce2ff490e855bfe881583101bfbe9136ff1929447684118b2"
+    },
+    {
+      "path": "sbin/arp",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/blkid",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/blockdev",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/depmod",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/fbsplash",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/fdisk",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/findfs",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/fsck",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/fstrim",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/getty",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/halt",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/hwclock",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/ifconfig",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/ifdown",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/ifenslave",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/ifup",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/init",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/inotifyd",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/insmod",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/ip",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/ipaddr",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/iplink",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/ipneigh",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/iproute",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/iprule",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/iptunnel",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/klogd",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/ldconfig",
+      "type": "file",
+      "mode": "0755",
+      "size": 393,
+      "sha256": "b4a2c06db38742e8c42c3c9838b285a7d8cdac6c091ff3df5ff9a15f1e41b9c7"
+    },
+    {
+      "path": "sbin/loadkmap",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/logread",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/losetup",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/lsmod",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/mdev",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/mkdosfs",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/mkfs.vfat",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/mkswap",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/modinfo",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/modprobe",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/nameif",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/nologin",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/pivot_root",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/poweroff",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/raidautorun",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/reboot",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/rmmod",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/route",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/setconsole",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/slattach",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/swapoff",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/swapon",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/switch_root",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/sysctl",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/syslogd",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/tunctl",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/udhcpc",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/vconfig",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/watchdog",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "sbin/zcip",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "srv",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "sys",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "tmp",
+      "type": "directory",
+      "mode": "1777"
+    },
+    {
+      "path": "usr",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "usr/bin",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "usr/bin/[",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/[[",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/awk",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/basename",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/bc",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/beep",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/blkdiscard",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/bunzip2",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/bzcat",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/bzip2",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/cal",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/chvt",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/cksum",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/clear",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/cmp",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/comm",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/cpio",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/crontab",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/cryptpw",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/cut",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/dc",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/deallocvt",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/diff",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/dirname",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/dos2unix",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/du",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/eject",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/env",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/expand",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/expr",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/factor",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/fallocate",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/find",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/flock",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/fold",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/free",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/fuser",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/getconf",
+      "type": "file",
+      "mode": "0755",
+      "size": 67320,
+      "sha256": "a97db0e7b82b367ecc4eb3e79a1c34345df98212712abfb2dc0fc5065eccfee2"
+    },
+    {
+      "path": "usr/bin/getent",
+      "type": "file",
+      "mode": "0755",
+      "size": 67528,
+      "sha256": "3f546761ca3af0bea288e0773d45b9595729beccc3a6a9e03cdc64ac7a3574e0"
+    },
+    {
+      "path": "usr/bin/groups",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/hd",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/head",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/hexdump",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/hostid",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/iconv",
+      "type": "file",
+      "mode": "0755",
+      "size": 67240,
+      "sha256": "3c0782718d643a0fa05667eaf40c5ad8d637d6165d80ab58ec8ad7c030e959d8"
+    },
+    {
+      "path": "usr/bin/id",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/install",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/ipcrm",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/ipcs",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/killall",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/last",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/ldd",
+      "type": "file",
+      "mode": "0755",
+      "size": 53,
+      "sha256": "5f115be8562262bcc50ec469e25c0af2fda3bad72a960c6aa3488acd7a7da8cf"
+    },
+    {
+      "path": "usr/bin/less",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/logger",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/lsof",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/lsusb",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/lzcat",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/lzma",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/lzopcat",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/md5sum",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/mesg",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/microcom",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/mkfifo",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/mkpasswd",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/nc",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/nl",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/nmeter",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/nohup",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/nproc",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/nsenter",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/nslookup",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/od",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/openvt",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/passwd",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/paste",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/pgrep",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/pkill",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/pmap",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/printf",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/pscan",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/pstree",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/pwdx",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/readlink",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/realpath",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/renice",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/reset",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/resize",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/scanelf",
+      "type": "file",
+      "mode": "0755",
+      "size": 67424,
+      "sha256": "5178c52acd1df6c76260c3bdcc7f1657e3921e688d4ca4ad4da771752a5e42b1"
+    },
+    {
+      "path": "usr/bin/seq",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/setkeycodes",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/setsid",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/sha1sum",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/sha256sum",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/sha3sum",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/sha512sum",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/showkey",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/shred",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/shuf",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/sort",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/split",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/ssl_client",
+      "type": "file",
+      "mode": "0755",
+      "size": 67472,
+      "sha256": "477a365ad2b059c32f1d0d2323cbcade0cac66cccbb7173ec4ccf5f0e6f86062"
+    },
+    {
+      "path": "usr/bin/strings",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/sum",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/tac",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/tail",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/tee",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/test",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/time",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/timeout",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/top",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/tr",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/traceroute",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/traceroute6",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/tree",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/truncate",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/tty",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/ttysize",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/udhcpc6",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/unexpand",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/uniq",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/unix2dos",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/unlink",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/unlzma",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/unlzop",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/unshare",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/unxz",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/unzip",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/uptime",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/uudecode",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/uuencode",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/vi",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/vlock",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/volname",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/wc",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/wget",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/which",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/who",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/whoami",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/whois",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/xargs",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/xxd",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/xzcat",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/bin/yes",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/lib",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "usr/lib/engines-3",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "usr/lib/engines-3/afalg.so",
+      "type": "file",
+      "mode": "0755",
+      "size": 67680,
+      "sha256": "14e6cc9d0fa622d16d5055ce977b58fb392c41668679f0763bd6ce2daf38d8ef"
+    },
+    {
+      "path": "usr/lib/engines-3/capi.so",
+      "type": "file",
+      "mode": "0755",
+      "size": 67168,
+      "sha256": "12771e67885c69052c2a99b75cb4f76d9351b20cd9f11ade1d04b6f075544c0f"
+    },
+    {
+      "path": "usr/lib/engines-3/loader_attic.so",
+      "type": "file",
+      "mode": "0755",
+      "size": 67952,
+      "sha256": "89e24d3b198e0379d93cc5c05c817d705e4024db16c847c5a858c756f09bd131"
+    },
+    {
+      "path": "usr/lib/engines-3/padlock.so",
+      "type": "file",
+      "mode": "0755",
+      "size": 67168,
+      "sha256": "ad9229bce5382b6f7ff3ead369c9541d44381718e1c47df8095bacf9e5655a9c"
+    },
+    {
+      "path": "usr/lib/libapk.so.2.14.9",
+      "type": "file",
+      "mode": "0755",
+      "size": 200328,
+      "sha256": "5f86d4ec7ed0bf6eed5157f25f74524a0cc1e81e57c1ad0dd768623a56aaac6e"
+    },
+    {
+      "path": "usr/lib/libcrypto.so.3",
+      "type": "file",
+      "mode": "0755",
+      "size": 4533144,
+      "sha256": "a21c7a427cdfff0fbc85aec57ff81ba1eb8e0bd6f13a3df1329647b29259529c"
+    },
+    {
+      "path": "usr/lib/libssl.so.3",
+      "type": "file",
+      "mode": "0755",
+      "size": 868240,
+      "sha256": "6850b45c608f8390d7eda7138d20c5bf0e07f7a27bd34825e56b1de1e18edd37"
+    },
+    {
+      "path": "usr/lib/libz.so.1",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "libz.so.1.3.1"
+    },
+    {
+      "path": "usr/lib/libz.so.1.3.1",
+      "type": "file",
+      "mode": "0755",
+      "size": 133008,
+      "sha256": "67fb66ae6b61b2fef8b3b6e2538926720b67737baaaf6711cdd6905352abd6e5"
+    },
+    {
+      "path": "usr/lib/modules-load.d",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "usr/lib/os-release",
+      "type": "file",
+      "mode": "0644",
+      "size": 188,
+      "sha256": "b836523e60eaa2eb7e4799ca77e9d34c910f100207455ab2cf32f09a5fc8271a"
+    },
+    {
+      "path": "usr/lib/ossl-modules",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "usr/lib/ossl-modules/legacy.so",
+      "type": "file",
+      "mode": "0755",
+      "size": 133008,
+      "sha256": "541195543a7166d6df96c773d1da819c49e8e25cbee814cca6b0209744c1dc2c"
+    },
+    {
+      "path": "usr/lib/sysctl.d",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "usr/lib/sysctl.d/00-alpine.conf",
+      "type": "file",
+      "mode": "0644",
+      "size": 1278,
+      "sha256": "ee169bea2cb6859420b55ca7a9c23fb68b50adc1d26c951f904dec9e8f767380"
+    },
+    {
+      "path": "usr/local",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "usr/local/bin",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "usr/local/lib",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "usr/local/share",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "usr/sbin",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "usr/sbin/add-shell",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/sbin/addgroup",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/sbin/adduser",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/sbin/arping",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/sbin/brctl",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/sbin/chpasswd",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/sbin/chroot",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/sbin/crond",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/sbin/delgroup",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/sbin/deluser",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/sbin/ether-wake",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/sbin/fbset",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/sbin/killall5",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/sbin/loadfont",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/sbin/nanddump",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/sbin/nandwrite",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/sbin/nbd-client",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/sbin/ntpd",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/sbin/partprobe",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/sbin/rdate",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/sbin/rdev",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/sbin/readahead",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/sbin/remove-shell",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/sbin/rfkill",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/sbin/sendmail",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/sbin/setfont",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/sbin/setlogcons",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "/bin/busybox"
+    },
+    {
+      "path": "usr/share",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "usr/share/apk",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "usr/share/apk/keys",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "usr/share/apk/keys/aarch64",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "usr/share/apk/keys/aarch64/alpine-devel@lists.alpinelinux.org-58199dcc.rsa.pub",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "../alpine-devel@lists.alpinelinux.org-58199dcc.rsa.pub"
+    },
+    {
+      "path": "usr/share/apk/keys/aarch64/alpine-devel@lists.alpinelinux.org-616ae350.rsa.pub",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "../alpine-devel@lists.alpinelinux.org-616ae350.rsa.pub"
+    },
+    {
+      "path": "usr/share/apk/keys/alpine-devel@lists.alpinelinux.org-4a6a0840.rsa.pub",
+      "type": "file",
+      "mode": "0644",
+      "size": 451,
+      "sha256": "9c102bcc376af1498d549b77bdbfa815ae86faa1d2d82f040e616b18ef2df2d4"
+    },
+    {
+      "path": "usr/share/apk/keys/alpine-devel@lists.alpinelinux.org-5243ef4b.rsa.pub",
+      "type": "file",
+      "mode": "0644",
+      "size": 451,
+      "sha256": "ebf31683b56410ecc4c00acd9f6e2839e237a3b62b5ae7ef686705c7ba0396a9"
+    },
+    {
+      "path": "usr/share/apk/keys/alpine-devel@lists.alpinelinux.org-524d27bb.rsa.pub",
+      "type": "file",
+      "mode": "0644",
+      "size": 451,
+      "sha256": "1bb2a846c0ea4ca9d0e7862f970863857fc33c32f5506098c636a62a726a847b"
+    },
+    {
+      "path": "usr/share/apk/keys/alpine-devel@lists.alpinelinux.org-5261cecb.rsa.pub",
+      "type": "file",
+      "mode": "0644",
+      "size": 451,
+      "sha256": "12f899e55a7691225603d6fb3324940fc51cd7f133e7ead788663c2b7eecb00c"
+    },
+    {
+      "path": "usr/share/apk/keys/alpine-devel@lists.alpinelinux.org-58199dcc.rsa.pub",
+      "type": "file",
+      "mode": "0644",
+      "size": 451,
+      "sha256": "73867d92083f2f8ab899a26ccda7ef63dfaa0032a938620eda605558958a8041"
+    },
+    {
+      "path": "usr/share/apk/keys/alpine-devel@lists.alpinelinux.org-58cbb476.rsa.pub",
+      "type": "file",
+      "mode": "0644",
+      "size": 451,
+      "sha256": "9a4cd858d9710963848e6d5f555325dc199d1c952b01cf6e64da2c15deedbd97"
+    },
+    {
+      "path": "usr/share/apk/keys/alpine-devel@lists.alpinelinux.org-58e4f17d.rsa.pub",
+      "type": "file",
+      "mode": "0644",
+      "size": 451,
+      "sha256": "780b3ed41786772cbc7b68136546fa3f897f28a23b30c72dde6225319c44cfff"
+    },
+    {
+      "path": "usr/share/apk/keys/alpine-devel@lists.alpinelinux.org-5e69ca50.rsa.pub",
+      "type": "file",
+      "mode": "0644",
+      "size": 451,
+      "sha256": "59c01c57b446633249f67c04b115dd6787f4378f183dff2bbf65406df93f176d"
+    },
+    {
+      "path": "usr/share/apk/keys/alpine-devel@lists.alpinelinux.org-60ac2099.rsa.pub",
+      "type": "file",
+      "mode": "0644",
+      "size": 451,
+      "sha256": "db0b49163f07ffba64a5ca198bcf1688610b0bd1f0d8d5afeaf78559d73f2278"
+    },
+    {
+      "path": "usr/share/apk/keys/alpine-devel@lists.alpinelinux.org-6165ee59.rsa.pub",
+      "type": "file",
+      "mode": "0644",
+      "size": 800,
+      "sha256": "207e4696d3c05f7cb05966aee557307151f1f00217af4143c1bcaf33b8df733f"
+    },
+    {
+      "path": "usr/share/apk/keys/alpine-devel@lists.alpinelinux.org-61666e3f.rsa.pub",
+      "type": "file",
+      "mode": "0644",
+      "size": 800,
+      "sha256": "128d34d4aec39b0daedea8163cd8dc24dff36fd3d848630ab97eeb1d3084bbb3"
+    },
+    {
+      "path": "usr/share/apk/keys/alpine-devel@lists.alpinelinux.org-616a9724.rsa.pub",
+      "type": "file",
+      "mode": "0644",
+      "size": 800,
+      "sha256": "10877cce0a935e46ad88cb79e174a2491680508eccda08e92bf04fb9bf37fbc1"
+    },
+    {
+      "path": "usr/share/apk/keys/alpine-devel@lists.alpinelinux.org-616abc23.rsa.pub",
+      "type": "file",
+      "mode": "0644",
+      "size": 800,
+      "sha256": "4a095a9daca86da496a3cd9adcd95ee2197fdbeb84638656d469f05a4d740751"
+    },
+    {
+      "path": "usr/share/apk/keys/alpine-devel@lists.alpinelinux.org-616ac3bc.rsa.pub",
+      "type": "file",
+      "mode": "0644",
+      "size": 800,
+      "sha256": "0caf5662fde45616d88cfd7021b7bda269a2fcaf311e51c48945a967a609ec0b"
+    },
+    {
+      "path": "usr/share/apk/keys/alpine-devel@lists.alpinelinux.org-616adfeb.rsa.pub",
+      "type": "file",
+      "mode": "0644",
+      "size": 800,
+      "sha256": "ebe717d228555aa58133c202314a451f81e71f174781fd7ff8d8970d6cfa60da"
+    },
+    {
+      "path": "usr/share/apk/keys/alpine-devel@lists.alpinelinux.org-616ae350.rsa.pub",
+      "type": "file",
+      "mode": "0644",
+      "size": 800,
+      "sha256": "d11f6b21c61b4274e182eb888883a8ba8acdbf820dcc7a6d82a7d9fc2fd2836d"
+    },
+    {
+      "path": "usr/share/apk/keys/alpine-devel@lists.alpinelinux.org-616db30d.rsa.pub",
+      "type": "file",
+      "mode": "0644",
+      "size": 800,
+      "sha256": "40a216cbd163f22e5f16a9e0929de7cde221b9cbae8e36aa368b1e128afe0a31"
+    },
+    {
+      "path": "usr/share/apk/keys/alpine-devel@lists.alpinelinux.org-66ba20fe.rsa.pub",
+      "type": "file",
+      "mode": "0644",
+      "size": 800,
+      "sha256": "7cf4cb8314e6ccc985b0d7f1aa0c6e0a81e3588f69a41f383af7a63d1ba61793"
+    },
+    {
+      "path": "usr/share/apk/keys/armhf",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "usr/share/apk/keys/armhf/alpine-devel@lists.alpinelinux.org-524d27bb.rsa.pub",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "../alpine-devel@lists.alpinelinux.org-524d27bb.rsa.pub"
+    },
+    {
+      "path": "usr/share/apk/keys/armhf/alpine-devel@lists.alpinelinux.org-616a9724.rsa.pub",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "../alpine-devel@lists.alpinelinux.org-616a9724.rsa.pub"
+    },
+    {
+      "path": "usr/share/apk/keys/armv7",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "usr/share/apk/keys/armv7/alpine-devel@lists.alpinelinux.org-524d27bb.rsa.pub",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "../alpine-devel@lists.alpinelinux.org-524d27bb.rsa.pub"
+    },
+    {
+      "path": "usr/share/apk/keys/armv7/alpine-devel@lists.alpinelinux.org-616adfeb.rsa.pub",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "../alpine-devel@lists.alpinelinux.org-616adfeb.rsa.pub"
+    },
+    {
+      "path": "usr/share/apk/keys/loongarch64",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "usr/share/apk/keys/loongarch64/alpine-devel@lists.alpinelinux.org-66ba20fe.rsa.pub",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "../alpine-devel@lists.alpinelinux.org-66ba20fe.rsa.pub"
+    },
+    {
+      "path": "usr/share/apk/keys/mips64",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "usr/share/apk/keys/mips64/alpine-devel@lists.alpinelinux.org-5e69ca50.rsa.pub",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "../alpine-devel@lists.alpinelinux.org-5e69ca50.rsa.pub"
+    },
+    {
+      "path": "usr/share/apk/keys/ppc64le",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "usr/share/apk/keys/ppc64le/alpine-devel@lists.alpinelinux.org-58cbb476.rsa.pub",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "../alpine-devel@lists.alpinelinux.org-58cbb476.rsa.pub"
+    },
+    {
+      "path": "usr/share/apk/keys/ppc64le/alpine-devel@lists.alpinelinux.org-616abc23.rsa.pub",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "../alpine-devel@lists.alpinelinux.org-616abc23.rsa.pub"
+    },
+    {
+      "path": "usr/share/apk/keys/riscv64",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "usr/share/apk/keys/riscv64/alpine-devel@lists.alpinelinux.org-60ac2099.rsa.pub",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "../alpine-devel@lists.alpinelinux.org-60ac2099.rsa.pub"
+    },
+    {
+      "path": "usr/share/apk/keys/riscv64/alpine-devel@lists.alpinelinux.org-616db30d.rsa.pub",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "../alpine-devel@lists.alpinelinux.org-616db30d.rsa.pub"
+    },
+    {
+      "path": "usr/share/apk/keys/s390x",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "usr/share/apk/keys/s390x/alpine-devel@lists.alpinelinux.org-58e4f17d.rsa.pub",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "../alpine-devel@lists.alpinelinux.org-58e4f17d.rsa.pub"
+    },
+    {
+      "path": "usr/share/apk/keys/s390x/alpine-devel@lists.alpinelinux.org-616ac3bc.rsa.pub",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "../alpine-devel@lists.alpinelinux.org-616ac3bc.rsa.pub"
+    },
+    {
+      "path": "usr/share/apk/keys/x86",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "usr/share/apk/keys/x86/alpine-devel@lists.alpinelinux.org-4a6a0840.rsa.pub",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "../alpine-devel@lists.alpinelinux.org-4a6a0840.rsa.pub"
+    },
+    {
+      "path": "usr/share/apk/keys/x86/alpine-devel@lists.alpinelinux.org-5243ef4b.rsa.pub",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "../alpine-devel@lists.alpinelinux.org-5243ef4b.rsa.pub"
+    },
+    {
+      "path": "usr/share/apk/keys/x86/alpine-devel@lists.alpinelinux.org-61666e3f.rsa.pub",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "../alpine-devel@lists.alpinelinux.org-61666e3f.rsa.pub"
+    },
+    {
+      "path": "usr/share/apk/keys/x86_64",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "usr/share/apk/keys/x86_64/alpine-devel@lists.alpinelinux.org-4a6a0840.rsa.pub",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "../alpine-devel@lists.alpinelinux.org-4a6a0840.rsa.pub"
+    },
+    {
+      "path": "usr/share/apk/keys/x86_64/alpine-devel@lists.alpinelinux.org-5261cecb.rsa.pub",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "../alpine-devel@lists.alpinelinux.org-5261cecb.rsa.pub"
+    },
+    {
+      "path": "usr/share/apk/keys/x86_64/alpine-devel@lists.alpinelinux.org-6165ee59.rsa.pub",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "../alpine-devel@lists.alpinelinux.org-6165ee59.rsa.pub"
+    },
+    {
+      "path": "usr/share/man",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "usr/share/misc",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "usr/share/udhcpc",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "usr/share/udhcpc/default.script",
+      "type": "file",
+      "mode": "0755",
+      "size": 3811,
+      "sha256": "1cf94e3918ce389c722f4408490ae7334321a5ca2aec2c945b0c47662aa274a6"
+    },
+    {
+      "path": "var",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "var/cache",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "var/cache/apk",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "var/cache/misc",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "var/empty",
+      "type": "directory",
+      "mode": "0555"
+    },
+    {
+      "path": "var/lib",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "var/lib/misc",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "var/local",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "var/lock",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "../run/lock"
+    },
+    {
+      "path": "var/log",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "var/mail",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "var/opt",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "var/run",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "../run"
+    },
+    {
+      "path": "var/spool",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "var/spool/cron",
+      "type": "directory",
+      "mode": "0755"
+    },
+    {
+      "path": "var/spool/cron/crontabs",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "../../../etc/crontabs"
+    },
+    {
+      "path": "var/spool/mail",
+      "type": "symlink",
+      "mode": "0777",
+      "target": "../mail"
+    },
+    {
+      "path": "var/tmp",
+      "type": "directory",
+      "mode": "1777"
+    }
+  ]
+}
