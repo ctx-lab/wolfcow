@@ -14,6 +14,11 @@ planning project; this repository holds implementation and public docs.
 - Treat any supplied rootfs as a source that is copied before boot. Guest
   writes must never modify it. Do not suggest using a project or home
   directory as a rootfs source.
+- Use semantic commit messages: `type(scope): description`, with an optional
+  scope and a concise imperative description. Use types such as `feat`, `fix`,
+  `refactor`, `docs`, `test`, `build`, `ci`, and `chore`. Mark breaking changes
+  with `!` and explain them in a `BREAKING CHANGE:` footer. Keep each commit
+  focused on one logical change.
 - Keep secrets out of files and Git history. CI scans the full Git history
   with Gitleaks; run a local scan before publishing if one is available.
 - Run `task verify` after Go changes. Run `task build` and a shell smoke test
