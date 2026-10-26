@@ -80,10 +80,13 @@ func TestCopyChangesAndDiff(t *testing.T) {
 	}
 }
 
-func TestBinaryDiffRejected(t *testing.T) {
-	_, err := Unified(Snapshot{}, Snapshot{"binary": []byte{0}}, []protocol.Change{{Path: "binary", Kind: "created"}})
-	if err == nil {
-		t.Fatal("accepted binary diff")
+func TestBinaryDiffHasMarker(t *testing.T) {
+	diff, err := Unified(Snapshot{}, Snapshot{"binary": []byte{0}}, []protocol.Change{{Path: "binary", Kind: "created"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if diff != "Binary files /dev/null and b/binary differ\n" {
+		t.Fatalf("diff = %q", diff)
 	}
 }
 

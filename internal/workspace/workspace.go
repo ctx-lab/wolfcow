@@ -167,15 +167,16 @@ func Unified(before, after Snapshot, changes []protocol.Change) (string, error) 
 	for _, change := range changes {
 		old := before[change.Path]
 		newData := after[change.Path]
-		if !utf8.Valid(old) || !utf8.Valid(newData) || bytes.IndexByte(old, 0) >= 0 || bytes.IndexByte(newData, 0) >= 0 {
-			return "", fmt.Errorf("binary diff unsupported: %s", change.Path)
-		}
 		oldName, newName := "a/"+change.Path, "b/"+change.Path
 		if change.Kind == "created" {
 			oldName = "/dev/null"
 		}
 		if change.Kind == "deleted" {
 			newName = "/dev/null"
+		}
+		if !utf8.Valid(old) || !utf8.Valid(newData) || bytes.IndexByte(old, 0) >= 0 || bytes.IndexByte(newData, 0) >= 0 {
+			fmt.Fprintf(&b, "Binary files %s and %s differ\n", oldName, newName)
+			continue
 		}
 		oldLines := splitLines(string(old))
 		newLines := splitLines(string(newData))

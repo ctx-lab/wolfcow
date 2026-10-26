@@ -23,8 +23,12 @@ the optional rootfs source can also be set with `WOLFCOW_ROOTFS`.
 
 The Go module is `github.com/ctx-lab/wolfcow`. `internal/vmm` owns VM lifecycle
 and image staging; `internal/protocol` defines the bounded guest stream.
-`cmd/wolfcow-guest` builds a static Linux guest agent. `internal/cli` owns the
-command surface. `task stage:a` uses a hidden development command and requires
+`internal/guest` implements its host control operations, and `internal/run`
+orchestrates a one-shot execution against a copied workspace. Its result keeps
+command exit separate from host operation errors and includes changed file
+contents without applying them to the source. `cmd/wolfcow-guest` builds the
+static Linux guest agent. `internal/cli` owns the command surface. `task stage:a`
+uses a hidden development command and requires
 a macOS terminal that permits local Unix sockets and the Hypervisor framework.
 `task stage:b` copies `examples/stage-b` into disposable guest storage, runs a
 command in `/work`, then prints the changed files and a text diff. It does not

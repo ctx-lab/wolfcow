@@ -1,18 +1,17 @@
-// Package spike exercises the Stage A guest control path.
+// Package spike retains development probes for the guest control path.
 package spike
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"net"
 	"os"
 	"path/filepath"
 	"runtime"
-	"syscall"
 	"time"
 
+	"github.com/ctx-lab/wolfcow/internal/guest"
 	"github.com/ctx-lab/wolfcow/internal/protocol"
 	"github.com/ctx-lab/wolfcow/internal/vmm"
 )
@@ -52,9 +51,7 @@ func RunExec(ctx context.Context, argv []string, stdout, stderr io.Writer) error
 	}
 	defer assets.Cleanup()
 	bootCtx, cancelBoot := context.WithTimeout(ctx, 15*time.Second)
-	machine, err := (vmm.Libkrun{Bundle: bundle}).Boot(bootCtx, vmm.BootSpec{
-		Rootfs: assets.Rootfs, Socket: assets.Socket, CPUs: 1, MemoryMiB: 512,
-	})
+	machine, err := (vmm.Libkrun{Bundle: bundle}).Boot(bootCtx, vmm.BootSpec{Rootfs: assets.Rootfs, Socket: assets.Socket, CPUs: 1, MemoryMiB: 512})
 	cancelBoot()
 	if err != nil {
 		return err
@@ -72,38 +69,11 @@ func RunExec(ctx context.Context, argv []string, stdout, stderr io.Writer) error
 		return err
 	}
 	defer conn.Close()
-	stopCancel := context.AfterFunc(ctx, func() { _ = conn.Close() })
-	defer stopCancel()
 	return execAfterReady(ctx, conn, ready, argv, stdout, stderr)
 }
 
 func awaitReady(ctx context.Context, machine vmm.Machine) (io.ReadWriteCloser, protocol.Message, error) {
-	var lastErr error
-	for {
-		conn, err := machine.OpenControl(ctx)
-		if err != nil {
-			return nil, protocol.Message{}, err
-		}
-		if timed, ok := conn.(net.Conn); ok {
-			if deadline, ok := ctx.Deadline(); ok {
-				_ = timed.SetReadDeadline(deadline)
-			}
-		}
-		ready, err := protocol.Read(conn)
-		if err == nil {
-			return conn, ready, nil
-		}
-		_ = conn.Close()
-		lastErr = err
-		if !errors.Is(err, io.EOF) && !errors.Is(err, io.ErrUnexpectedEOF) && !errors.Is(err, syscall.ECONNRESET) {
-			return nil, protocol.Message{}, fmt.Errorf("guest ready: %w", err)
-		}
-		select {
-		case <-ctx.Done():
-			return nil, protocol.Message{}, fmt.Errorf("guest ready after connection retries (%v): %w", lastErr, ctx.Err())
-		case <-time.After(50 * time.Millisecond):
-		}
-	}
+	return guest.Open(ctx, machine)
 }
 
 func runControl(ctx context.Context, conn io.ReadWriteCloser, argv []string, stdout, stderr io.Writer) error {
@@ -122,77 +92,21 @@ func execAfterReady(ctx context.Context, conn io.ReadWriteCloser, ready protocol
 }
 
 func execInDir(ctx context.Context, conn io.ReadWriteCloser, ready protocol.Message, argv []string, dir string, stdout, stderr io.Writer) error {
-	if ready.Type != "ready" || ready.Major != protocol.Major || ready.Kernel == "" {
-		return fmt.Errorf("unsupported guest protocol: type=%q version=%d", ready.Type, ready.Major)
-	}
-	canExec := false
-	for _, operation := range ready.Operations {
-		canExec = canExec || operation == "exec"
-	}
-	if !canExec {
-		return fmt.Errorf("guest does not support exec")
-	}
 	if _, err := fmt.Fprintf(stderr, "guest kernel: %s\n", ready.Kernel); err != nil {
 		return err
 	}
-	execCtx, cancelExec := context.WithTimeout(ctx, 30*time.Second)
-	defer cancelExec()
-	deadline, _ := execCtx.Deadline()
-	if timed, ok := conn.(net.Conn); ok {
-		_ = timed.SetDeadline(deadline.Add(time.Second))
+	result, err := guest.Exec(ctx, conn, ready, guest.ExecSpec{Argv: argv, Dir: dir, Timeout: 30 * time.Second, OutputMax: protocol.MaxOutput}, stdout, stderr)
+	if err != nil {
+		return err
 	}
-	request := protocol.Message{Type: "exec.start", ID: "spike-exec", Argv: argv, Dir: dir, DeadlineMS: deadline.UnixMilli(), OutputMax: protocol.MaxOutput}
-	if err := protocol.Write(conn, request); err != nil {
-		return fmt.Errorf("send guest exec: %w", err)
+	if result.Status != "" {
+		return fmt.Errorf("guest exec: %s", result.Status)
 	}
-	var received int64
-	for {
-		m, err := protocol.Read(conn)
-		if err != nil {
-			if execCtx.Err() != nil {
-				_ = protocol.Write(conn, protocol.Message{Type: "exec.cancel", ID: request.ID})
-				return execCtx.Err()
-			}
-			return fmt.Errorf("guest exec response: %w", err)
-		}
-		if m.ID != request.ID {
-			return fmt.Errorf("unexpected guest response id %q", m.ID)
-		}
-		switch m.Type {
-		case "exec.stdout":
-			received += int64(len(m.Data))
-			if received > protocol.MaxOutput {
-				return fmt.Errorf("guest output exceeds limit")
-			}
-			if _, err := stdout.Write(m.Data); err != nil {
-				return err
-			}
-		case "exec.stderr":
-			received += int64(len(m.Data))
-			if received > protocol.MaxOutput {
-				return fmt.Errorf("guest output exceeds limit")
-			}
-			if _, err := stderr.Write(m.Data); err != nil {
-				return err
-			}
-		case "exec.exit":
-			if m.Status != "" {
-				return fmt.Errorf("guest exec: %s", m.Status)
-			}
-			if m.Signal != "" {
-				return GuestExitError{Code: 1, Signal: m.Signal}
-			}
-			if m.ExitCode == nil {
-				return errors.New("guest exec returned no exit code")
-			}
-			if *m.ExitCode != 0 {
-				return GuestExitError{Code: *m.ExitCode}
-			}
-			return nil
-		case "error":
-			return fmt.Errorf("guest %s: %s", m.Code, m.Error)
-		default:
-			return fmt.Errorf("unexpected guest response %q", m.Type)
-		}
+	if result.Signal != "" {
+		return GuestExitError{Code: 1, Signal: result.Signal}
 	}
+	if result.Code != 0 {
+		return GuestExitError{Code: result.Code}
+	}
+	return nil
 }
