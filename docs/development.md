@@ -83,32 +83,16 @@ Pull requests and pushes run Go tests, vet, the static guest cross-build, and
 the bundle but cannot boot this libkrun VM because GitHub-hosted macOS runners
 do not expose nested virtualization.
 
-The separate **macOS VM conformance** workflow runs `task verify` and
-`task stage:b` on a physical Apple Silicon Mac. To enable it:
-
-1. Register a dedicated macOS ARM64 runner in the `wolfcow-vm` organization
-   runner group. Restrict the group to this repository and to
-   `ctx-lab/wolfcow/.github/workflows/vm.yml@refs/heads/main`.
-2. Install Task, Rust/Cargo, and Apple command line tools on that Mac. The
-   workflow installs Go through `actions/setup-go`.
-3. Set the repository Actions variable `WOLFCOW_VM_RUNNER` to `enabled`.
-4. Dispatch **macOS VM conformance** from `main` in GitHub Actions.
-
-The VM workflow does not run pull-request code on the physical runner. Keep
-this runner separate from personal files and credentials; GitHub warns that
-self-hosted runners attached to public repositories can be reached by unsafe
-workflow configuration. See [runner groups](https://docs.github.com/en/actions/how-tos/manage-runners/self-hosted-runners/manage-access)
-and [GitHub's runner security guidance](https://docs.github.com/en/actions/reference/security/secure-use).
+The separate manually dispatched **macOS VM conformance** workflow runs
+`task verify` and `task stage:b` on a self-hosted physical Apple Silicon Mac.
+It runs only from `main` and never runs pull-request code on that runner.
 
 ## App Sandbox probe
 
 `task security:app-sandbox` signs separate test executables and checks whether
 macOS App Sandbox lets the helper read a system fixture while denying a private
-file. It never changes the shipped helper. The first host run failed before
-`main`: its crash report said the signed executable lacked an embedded
-`Info.plist` bundle identifier. The probe now embeds matching identifiers. In
-the current development environment, the minimal signed process still aborts
-before libkrun runs, so App Sandbox confinement remains unverified.
+file. It never changes the shipped helper. The minimal signed process currently
+aborts before libkrun runs, so App Sandbox confinement remains unverified.
 `WOLFCOW_SIGN_IDENTITY` can select an installed signing identity;
 otherwise the probe signs ad hoc. The probe's temporary library-validation
 exception is absent from the product helper.
