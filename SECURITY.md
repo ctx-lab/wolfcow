@@ -14,12 +14,20 @@ selected literal IP. The guest cannot reach the
 proxy's mutable forwarding API. A local synthetic endpoint remains for the
 hidden `spike net` probe.
 
+An allowed hostname is bound only during host resolution and dial. The guest
+controls TLS SNI and HTTP `Host` inside the opaque tunnel, so an allowed name
+on a shared CDN address may expose other tenants on that address. This is a
+known limitation, not application-level hostname enforcement.
+
 CONNECT carries opaque TCP bytes. Wolfcow does not inspect the tunneled
 protocol or validate its TLS certificate; the guest client must do that. No
 credential substitution is implemented. A physical macOS VM probe established
-an explicitly allowed CONNECT tunnel to `example.com:80`; it did not verify
-application data or TLS. The full negative egress suite is not complete.
-CONNECT tunnels also lack idle limits and explicit half-close handling.
+an explicitly allowed CONNECT tunnel to `example.com:80`, sent an HTTP request,
+and received a response. It also denied unlisted CONNECT hostnames and ports,
+raw-IP CONNECT, and direct raw-IP traffic. TLS validation and the full negative
+egress suite remain open. CONNECT tunnels have a two-minute idle deadline. The
+proxy forwards half-closes where the transport supports them and closes fully
+otherwise; this behavior has local tests but no dedicated physical-VM check.
 It also does not establish host-process confinement.
 Do not run untrusted guest code with networking enabled.
 

@@ -16,6 +16,7 @@ task stage:b         # copied workspace smoke and guest protocol conformance
 task image:smoke     # boot the pinned image and check shell and CA bundle
 task net:link        # experimental virtio-net/gvproxy local connectivity
 task net:external    # optional external TCP CONNECT smoke on physical macOS
+task net:checks      # run both network probes after one build
 ```
 
 The default rootfs is recreated for every run and removed on exit. An optional
@@ -29,7 +30,8 @@ The default Alpine minirootfs is pinned by archive digest in
 compares it with `images/alpine-minirootfs-3.22.2-aarch64.json`, and includes
 the manifest in the runtime archive. `task image:smoke` then checks that the
 image boots with BusyBox and the CA bundle. Python, Bash, and Git are deferred
-until the coding-agent fixture needs them.
+until the coding-agent fixture needs them. The image smoke probe passes on
+physical Apple Silicon macOS.
 
 `task net:link` attaches a temporary virtio-net device to the bundled gvproxy
 and asks the guest to reach its local health endpoint and one synthetic
@@ -50,13 +52,22 @@ against private and special-purpose ranges, and
 dials the selected IP without a second DNS lookup. Direct guest connections
 remain denied. The guest command receives HTTP(S) proxy environment variables.
 The proxy tunnels opaque TCP bytes, so the guest client is responsible for TLS
-validation. IPv6, credential substitution, and a public network CLI are not
-implemented. `task net:external` has established a CONNECT tunnel to the
-explicitly allowed `example.com:80` from a guest on physical Apple Silicon
-macOS. That probe checks tunnel establishment, not application data or TLS.
+validation. Tunnel copying has a two-minute idle deadline and forwards
+half-closes when supported by the transport, with a full-close fallback.
+The hostname policy is enforced at resolution and dial; the guest still
+controls TLS SNI and HTTP `Host` within an allowed tunnel, including on shared
+CDN addresses.
+IPv6, credential substitution, and a public network CLI are not
+implemented. `task net:external` passed on physical Apple Silicon macOS: the
+guest sent an HTTP request through a CONNECT tunnel to the explicitly allowed
+`example.com:80`, received a response, and was denied blocked CONNECT
+hostnames, suffixes, ports, and raw IPs plus direct raw-IP traffic. It does not
+validate TLS or prove the complete negative egress suite.
 It uses the workspace development command, so its output also includes the
 unrelated `host-note.txt` fixture diff. A complete negative egress suite is
-still needed before this path is a security gate.
+still needed before this path is a security gate. `task net:checks` runs the
+local synthetic probe and the external probe together; direct raw-IP denial
+must be a prompt connection refusal, not merely a timeout.
 
 The Go module is `github.com/ctx-lab/wolfcow`. `internal/vmm` owns VM lifecycle
 and image staging; `internal/protocol` defines the bounded guest stream.

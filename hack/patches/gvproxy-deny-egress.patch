@@ -201,10 +201,11 @@
 +}
 --- /dev/null
 +++ b/cmd/gvproxy/wolfcow_proxy.go
-@@ -0,0 +1,148 @@
+@@ -0,0 +1,213 @@
 +package main
 +
 +import (
++	"bufio"
 +	"context"
 +	"errors"
 +	"fmt"
@@ -213,6 +214,7 @@
 +	"net/http"
 +	"net/netip"
 +	"strconv"
++	"sync"
 +	"time"
 +
 +	log "github.com/sirupsen/logrus"
@@ -340,15 +342,78 @@
 +	if err := buffered.Flush(); err != nil {
 +		return
 +	}
-+	done := make(chan struct{})
++	_ = wolfcowTunnel(guest, buffered, outbound, 2*time.Minute)
++}
++
++type wolfcowTunnelActivity struct {
++	guest    net.Conn
++	outbound net.Conn
++	idle     time.Duration
++	mu       sync.Mutex
++}
++
++func (a *wolfcowTunnelActivity) touch() error {
++	a.mu.Lock()
++	defer a.mu.Unlock()
++	deadline := time.Now().Add(a.idle)
++	if err := a.guest.SetDeadline(deadline); err != nil {
++		return err
++	}
++	return a.outbound.SetDeadline(deadline)
++}
++
++type wolfcowActivityWriter struct {
++	dst      net.Conn
++	activity *wolfcowTunnelActivity
++}
++
++func (w wolfcowActivityWriter) Write(data []byte) (int, error) {
++	n, err := w.dst.Write(data)
++	if n > 0 && err == nil {
++		err = w.activity.touch()
++	}
++	return n, err
++}
++
++func wolfcowCloseWrite(conn net.Conn) error {
++	if half, ok := conn.(interface{ CloseWrite() error }); ok {
++		return half.CloseWrite()
++	}
++	// Some guest transports cannot half-close. Close fully so the other copy
++	// cannot wait forever for an EOF that this transport cannot send.
++	return conn.Close()
++}
++
++func wolfcowTunnel(guest net.Conn, buffered *bufio.ReadWriter, outbound net.Conn, idle time.Duration) error {
++	activity := &wolfcowTunnelActivity{guest: guest, outbound: outbound, idle: idle}
++	if err := activity.touch(); err != nil {
++		return err
++	}
++	done := make(chan error, 2)
 +	go func() {
-+		_, _ = io.Copy(outbound, buffered)
-+		close(done)
++		_, err := io.Copy(wolfcowActivityWriter{dst: outbound, activity: activity}, buffered)
++		if err == nil {
++			err = wolfcowCloseWrite(outbound)
++		}
++		done <- err
 +	}()
-+	_, _ = io.Copy(guest, outbound)
-+	_ = guest.Close()
-+	_ = outbound.Close()
-+	<-done
++	go func() {
++		_, err := io.Copy(wolfcowActivityWriter{dst: guest, activity: activity}, outbound)
++		if err == nil {
++			err = wolfcowCloseWrite(guest)
++		}
++		done <- err
++	}()
++	first := <-done
++	if first != nil {
++		_ = guest.Close()
++		_ = outbound.Close()
++	}
++	second := <-done
++	if first == nil {
++		return second
++	}
++	return first
 +}
 --- /dev/null
 +++ b/cmd/gvproxy/wolfcow_proxy_test.go
@@ -599,7 +664,7 @@
 +}
 --- /dev/null
 +++ b/cmd/gvproxy/wolfcow_policy_test.go
-@@ -0,0 +1,222 @@
+@@ -0,0 +1,259 @@
 +package main
 +
 +import (
@@ -659,15 +724,52 @@
 +	}
 +}
 +
-+func TestWolfcowConnectDeniesRawIPBeforeDial(t *testing.T) {
-+	r, err := http.ReadRequest(bufio.NewReader(strings.NewReader("CONNECT 127.0.0.1:443 HTTP/1.1\r\nHost: 127.0.0.1:443\r\n\r\n")))
++func TestWolfcowConnectDeniesUnapprovedTargetsBeforeLookup(t *testing.T) {
++	for _, target := range []string{
++		"blocked.example:443",
++		"example.org.evil:443",
++		"example.org:80",
++		"127.0.0.1:443",
++		"EXAMPLE.ORG:443",
++	} {
++		t.Run(target, func(t *testing.T) {
++			r, err := http.ReadRequest(bufio.NewReader(strings.NewReader("CONNECT " + target + " HTTP/1.1\r\nHost: " + target + "\r\n\r\n")))
++			if err != nil {
++				t.Fatal(err)
++			}
++			lookup := func(context.Context, string, string) ([]netip.Addr, error) {
++				t.Fatal("lookup called for denied target")
++				return nil, nil
++			}
++			dial := func(context.Context, string, string) (net.Conn, error) {
++				t.Fatal("dial called for denied target")
++				return nil, nil
++			}
++			w := httptest.NewRecorder()
++			wolfcowGuestHandlerWithNetwork(wolfcowPolicy{TCP: []wolfcowDestination{{Host: "example.org", Port: 443}}}, lookup, dial).ServeHTTP(w, r)
++			if w.Code != http.StatusForbidden {
++				t.Fatalf("status = %d", w.Code)
++			}
++		})
++	}
++}
++
++func TestWolfcowConnectDeniesPrivateResolutionBeforeDial(t *testing.T) {
++	r, err := http.ReadRequest(bufio.NewReader(strings.NewReader("CONNECT example.org:443 HTTP/1.1\r\nHost: example.org:443\r\n\r\n")))
 +	if err != nil {
 +		t.Fatal(err)
 +	}
++	lookup := func(context.Context, string, string) ([]netip.Addr, error) {
++		return []netip.Addr{netip.MustParseAddr("8.8.8.8"), netip.MustParseAddr("127.0.0.1")}, nil
++	}
++	dial := func(context.Context, string, string) (net.Conn, error) {
++		t.Fatal("dial called after mixed public/private resolution")
++		return nil, nil
++	}
 +	w := httptest.NewRecorder()
-+	wolfcowGuestHandler(wolfcowPolicy{TCP: []wolfcowDestination{{Host: "example.org", Port: 443}}}).ServeHTTP(w, r)
-+	if w.Code != http.StatusForbidden {
-+		t.Fatalf("status = %d", w.Code)
++	wolfcowGuestHandlerWithNetwork(wolfcowPolicy{TCP: []wolfcowDestination{{Host: "example.org", Port: 443}}}, lookup, dial).ServeHTTP(w, r)
++	if w.Code != http.StatusBadGateway || w.Header().Get("X-Wolfcow-Connect-Error") != "blocked-address" {
++		t.Fatalf("status = %d, reason = %q", w.Code, w.Header().Get("X-Wolfcow-Connect-Error"))
 +	}
 +}
 +
@@ -820,5 +922,181 @@
 +	wolfcowGuestHandlerWithNetwork(wolfcowPolicy{TCP: []wolfcowDestination{{Host: "example.org", Port: 443}}}, lookup, nil).ServeHTTP(w, r)
 +	if w.Code != http.StatusBadGateway || w.Header().Get("X-Wolfcow-DNS-Detail") != "canceled" {
 +		t.Fatalf("status=%d detail=%q", w.Code, w.Header().Get("X-Wolfcow-DNS-Detail"))
++	}
++}
+--- /dev/null
++++ b/cmd/gvproxy/wolfcow_tunnel_test.go
+@@ -0,0 +1,173 @@
++package main
++
++import (
++	"bufio"
++	"errors"
++	"fmt"
++	"io"
++	"net"
++	"sync"
++	"testing"
++	"time"
++)
++
++type wolfcowPipeAddr string
++
++func (a wolfcowPipeAddr) Network() string { return "pipe" }
++func (a wolfcowPipeAddr) String() string  { return string(a) }
++
++type wolfcowHalfPipe struct {
++	r    *io.PipeReader
++	w    *io.PipeWriter
++	once sync.Once
++}
++
++func wolfcowHalfPipePair() (*wolfcowHalfPipe, *wolfcowHalfPipe) {
++	abReader, abWriter := io.Pipe()
++	baReader, baWriter := io.Pipe()
++	return &wolfcowHalfPipe{r: baReader, w: abWriter}, &wolfcowHalfPipe{r: abReader, w: baWriter}
++}
++
++func (c *wolfcowHalfPipe) Read(p []byte) (int, error)  { return c.r.Read(p) }
++func (c *wolfcowHalfPipe) Write(p []byte) (int, error) { return c.w.Write(p) }
++func (c *wolfcowHalfPipe) CloseWrite() error           { return c.w.Close() }
++func (c *wolfcowHalfPipe) Close() error {
++	c.once.Do(func() {
++		_ = c.r.Close()
++		_ = c.w.Close()
++	})
++	return nil
++}
++func (*wolfcowHalfPipe) LocalAddr() net.Addr              { return wolfcowPipeAddr("local") }
++func (*wolfcowHalfPipe) RemoteAddr() net.Addr             { return wolfcowPipeAddr("remote") }
++func (*wolfcowHalfPipe) SetDeadline(time.Time) error      { return nil }
++func (*wolfcowHalfPipe) SetReadDeadline(time.Time) error  { return nil }
++func (*wolfcowHalfPipe) SetWriteDeadline(time.Time) error { return nil }
++
++func TestWolfcowTunnelPreservesHalfClose(t *testing.T) {
++	client, gateway := wolfcowHalfPipePair()
++	outbound, server := wolfcowHalfPipePair()
++	defer client.Close()
++	defer gateway.Close()
++	defer outbound.Close()
++	defer server.Close()
++	done := make(chan error, 1)
++	go func() {
++		buffered := bufio.NewReadWriter(bufio.NewReader(gateway), bufio.NewWriter(gateway))
++		done <- wolfcowTunnel(gateway, buffered, outbound, time.Second)
++	}()
++	interaction := make(chan error, 1)
++	go func() {
++		serverDone := make(chan error, 1)
++		go func() {
++			data := make([]byte, 4)
++			if _, err := io.ReadFull(server, data); err != nil || string(data) != "ping" {
++				serverDone <- fmt.Errorf("server read %q: %v", data, err)
++				return
++			}
++			if n, err := server.Read(data); n != 0 || !errors.Is(err, io.EOF) {
++				serverDone <- fmt.Errorf("server half-close = %d, %v", n, err)
++				return
++			}
++			if _, err := server.Write([]byte("pong")); err != nil {
++				serverDone <- err
++				return
++			}
++			serverDone <- server.CloseWrite()
++		}()
++		if _, err := client.Write([]byte("ping")); err != nil {
++			interaction <- err
++			return
++		}
++		if err := client.CloseWrite(); err != nil {
++			interaction <- err
++			return
++		}
++		data := make([]byte, 4)
++		if _, err := io.ReadFull(client, data); err != nil || string(data) != "pong" {
++			interaction <- fmt.Errorf("client read %q: %v", data, err)
++			return
++		}
++		if n, err := client.Read(data); n != 0 || !errors.Is(err, io.EOF) {
++			interaction <- fmt.Errorf("client half-close = %d, %v", n, err)
++			return
++		}
++		interaction <- <-serverDone
++	}()
++	select {
++	case err := <-interaction:
++		if err != nil {
++			t.Fatal(err)
++		}
++	case <-time.After(2 * time.Second):
++		t.Fatal("half-closed tunnel did not complete")
++	}
++	select {
++	case err := <-done:
++		if err != nil {
++			t.Fatal(err)
++		}
++	case <-time.After(time.Second):
++		t.Fatal("tunnel did not stop after both halves closed")
++	}
++}
++
++func TestWolfcowTunnelClosesIdleConnections(t *testing.T) {
++	client, gateway := net.Pipe()
++	outbound, server := net.Pipe()
++	defer client.Close()
++	defer gateway.Close()
++	defer outbound.Close()
++	defer server.Close()
++	done := make(chan error, 1)
++	go func() {
++		buffered := bufio.NewReadWriter(bufio.NewReader(gateway), bufio.NewWriter(gateway))
++		done <- wolfcowTunnel(gateway, buffered, outbound, 50*time.Millisecond)
++	}()
++	select {
++	case err := <-done:
++		if err == nil {
++			t.Fatal("idle tunnel ended without timeout")
++		}
++	case <-time.After(time.Second):
++		t.Fatal("idle tunnel did not stop")
++	}
++}
++
++func TestWolfcowTunnelActivityResetsBothDirections(t *testing.T) {
++	client, gateway := net.Pipe()
++	outbound, server := net.Pipe()
++	defer client.Close()
++	defer gateway.Close()
++	defer outbound.Close()
++	defer server.Close()
++	_ = client.SetDeadline(time.Now().Add(2 * time.Second))
++	_ = server.SetDeadline(time.Now().Add(2 * time.Second))
++	done := make(chan error, 1)
++	go func() {
++		buffered := bufio.NewReadWriter(bufio.NewReader(gateway), bufio.NewWriter(gateway))
++		done <- wolfcowTunnel(gateway, buffered, outbound, 250*time.Millisecond)
++	}()
++	for i := 0; i < 5; i++ {
++		writeDone := make(chan error, 1)
++		go func() {
++			_, err := server.Write([]byte("x"))
++			writeDone <- err
++		}()
++		data := make([]byte, 1)
++		if _, err := io.ReadFull(client, data); err != nil || data[0] != 'x' {
++			t.Fatalf("read after activity %d: %q, %v", i, data, err)
++		}
++		if err := <-writeDone; err != nil {
++			t.Fatal(err)
++		}
++		time.Sleep(80 * time.Millisecond)
++	}
++	_ = server.Close()
++	_ = client.Close()
++	select {
++	case <-done:
++	case <-time.After(time.Second):
++		t.Fatal("tunnel did not stop after peers closed")
 +	}
 +}
