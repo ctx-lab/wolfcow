@@ -28,46 +28,41 @@ the optional rootfs source can also be set with `WOLFCOW_ROOTFS`.
 The default Alpine minirootfs is pinned by archive digest in
 `hack/runtime.env`. `task build` regenerates its package and file inventory,
 compares it with `images/alpine-minirootfs-3.22.2-aarch64.json`, and includes
-the manifest in the runtime archive. `task image:smoke` then checks that the
-image boots with BusyBox and the CA bundle. Python, Bash, and Git are deferred
-until the coding-agent fixture needs them. The image smoke probe passes on
-physical Apple Silicon macOS.
+the manifest in the runtime archive. `task image:smoke` checks that the image
+boots with BusyBox and the CA bundle. The image does not include Python, Bash,
+or Git.
 
-`task net:link` attaches a temporary virtio-net device to the bundled gvproxy
-and asks the guest to reach its local health endpoint and one synthetic
-endpoint through an explicit HTTP proxy request. It also checks denied
-hostnames and raw-IP requests. The probe uses BusyBox `wget` with an explicit
-proxy setting. The bundled gvproxy is built from pinned v0.8.9
-source with `hack/patches/gvproxy-deny-egress.patch`: unknown DNS names get
-NXDOMAIN, direct TCP and UDP forwarding is disabled, and the guest cannot call
-gvproxy's mutable forwarding API. The synthetic endpoint returns static JSON
-without a host network dial or credential substitution. The build fetches a
-pinned Go 1.25 toolchain for that upstream source; the main project still uses
-the installed Go. `internal/network.Policy` now represents per-run TCP
-destinations as exact DNS name and port pairs. `internal/run.Spec.Network`
-attaches the network only when that list is nonempty, and the hidden
-`spike workspace --allow-tcp HOST:PORT` flag exercises the path. The host
-proxy accepts CONNECT for an allowed pair, checks resolved IPv4 addresses
-against private and special-purpose ranges, and
-dials the selected IP without a second DNS lookup. Direct guest connections
-remain denied. The guest command receives HTTP(S) proxy environment variables.
-The proxy tunnels opaque TCP bytes, so the guest client is responsible for TLS
-validation. Tunnel copying has a two-minute idle deadline and forwards
-half-closes when supported by the transport, with a full-close fallback.
-The hostname policy is enforced at resolution and dial; the guest still
-controls TLS SNI and HTTP `Host` within an allowed tunnel, including on shared
-CDN addresses.
-IPv6, credential substitution, and a public network CLI are not
-implemented. `task net:external` passed on physical Apple Silicon macOS: the
-guest sent an HTTP request through a CONNECT tunnel to the explicitly allowed
-`example.com:80`, received a response, and was denied blocked CONNECT
-hostnames, suffixes, ports, and raw IPs plus direct raw-IP traffic. It does not
-validate TLS or prove the complete negative egress suite.
-It uses the workspace development command, so its output also includes the
-unrelated `host-note.txt` fixture diff. A complete negative egress suite is
-still needed before this path is a security gate. `task net:checks` runs the
-local synthetic probe and the external probe together; direct raw-IP denial
-must be a prompt connection refusal, not merely a timeout.
+Runs attach no network device unless a per-run `internal/network.Policy`
+allows at least one exact DNS hostname and TCP port pair; the hidden
+`spike workspace --allow-tcp HOST:PORT` flag sets one. The bundled gvproxy is
+built from pinned v0.8.9 source with `hack/patches/gvproxy-deny-egress.patch`,
+using a pinned Go 1.25 toolchain fetched by the build. With that patch:
+
+- unknown DNS names get NXDOMAIN, direct guest TCP and UDP forwarding is
+  disabled, and the guest cannot call gvproxy's forwarding API;
+- the guest reaches the host proxy through HTTP(S) proxy environment
+  variables, and the proxy accepts CONNECT only for an allowed pair;
+- the proxy resolves the name once, rejects private, local, and selected
+  special-purpose IPv4 results, and dials the selected IP without a second
+  lookup;
+- tunnels carry opaque TCP bytes, close after two minutes without traffic, and
+  forward half-closes where the transport supports them; and
+- the guest client validates TLS. Inside an allowed tunnel the guest controls
+  TLS SNI and HTTP `Host`, including on shared CDN addresses.
+
+IPv6, credential substitution, and a public network CLI are not implemented.
+
+The network probes run on physical Apple Silicon macOS:
+
+- `task net:link` uses BusyBox `wget` to reach the gateway health endpoint and
+  a static synthetic endpoint, and checks denied hostnames and raw-IP requests.
+- `task net:external` sends an HTTP request through a CONNECT tunnel to
+  `example.com:80` and requires prompt denial of blocked hostnames, hostname
+  suffixes, other ports, raw-IP CONNECT, and direct raw-IP traffic. Its output
+  includes the workspace fixture diff from the development command it uses.
+- `task net:checks` runs both after one build.
+
+These probes do not validate TLS and are not a complete negative egress suite.
 
 The Go module is `github.com/ctx-lab/wolfcow`. `internal/vmm` owns VM lifecycle
 and image staging; `internal/protocol` defines the bounded guest stream.
